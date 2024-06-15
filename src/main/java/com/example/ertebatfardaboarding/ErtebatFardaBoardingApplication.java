@@ -1,5 +1,6 @@
 package com.example.ertebatfardaboarding;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.MessageSource;
@@ -37,6 +38,14 @@ public class ErtebatFardaBoardingApplication {
             return PageRequest.of(--pageNumber, PER_PAGE, Sort.by(Sort.Direction.DESC, "id"));
         else
             return PageRequest.of(--pageNumber, perPage, Sort.by(Sort.Direction.DESC, "id"));
+    }
+
+    public static String getClientIP(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0];
     }
 
 }
