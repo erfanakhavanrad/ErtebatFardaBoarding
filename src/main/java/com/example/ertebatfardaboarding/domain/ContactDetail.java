@@ -15,13 +15,7 @@ public class ContactDetail {
     private String numberName;
     @Column
     private String number;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "contact_id")
-    private Contact contact;
-
-//    @ManyToOne(optional=false)
-//    @JoinColumn(name="customerId",referencedColumnName="id_customer")
-//    private Customer customer;
-
+//    @ManyToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "contact_id")
+//    private Contact contact;
 }
