@@ -8,10 +8,12 @@ import com.example.ertebatfardaboarding.domain.mapper.UserMapper;
 import com.example.ertebatfardaboarding.domain.specification.UserSpecification;
 import com.example.ertebatfardaboarding.exception.UserException;
 import com.example.ertebatfardaboarding.repo.UserRepository;
+import com.example.ertebatfardaboarding.security.SecurityService;
 import com.example.ertebatfardaboarding.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -33,6 +36,14 @@ public class UserServiceImpl implements UserService {
 
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
+    @Autowired
+    private SecurityService securityService;
+
+    @Value("${SUCCESS_RESULT}")
+    int success;
+
+    @Value("${FAIL_RESULT}")
+    int fail;
 
     public List<User> getUsers(UserDto userDto) {
         Specification<User> specification = Specification.where(null);
@@ -53,6 +64,7 @@ public class UserServiceImpl implements UserService {
             throw new UserException(faMessageSource.getMessage("ALREADY_EXISTS", null, Locale.ENGLISH));
         User user = UserMapper.userMapper.userDtoToUser(userDto);
         user.setPassword(passwordGenerator(userDto));
+        user.setUserName(userDto.getEmail());
         User savedUser = userRepository.save(user);
         return UserMapper.userMapper.userToUserDto(savedUser);
     }
@@ -65,7 +77,13 @@ public class UserServiceImpl implements UserService {
         if (savedUser.isEmpty())
             throw new UserException(faMessageSource.getMessage("INVALID_CREDENTIALS", null, Locale.ENGLISH));
         if (isPasswordValid(savedUser.get(0), userDto)) {
-            System.out.println("Login Success");
+
+        List tokens = new ArrayList();
+        tokens.add(securityService.createTokenByUserPasswordAuthentication(userDto.getEmail()));
+        responseModel.setContents(tokens);
+        responseModel.setContent(savedUser);
+        responseModel.setResult(success);
+
         } else throw new UserException("INVALID_CREDENTIALS");
         return userDto;
     }
