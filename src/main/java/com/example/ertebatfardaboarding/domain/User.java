@@ -2,8 +2,11 @@ package com.example.ertebatfardaboarding.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.security.core.GrantedAuthority;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
@@ -20,5 +23,17 @@ public class User implements Serializable {
     @Column
     private String password;
     @Column
-    private String userName;
+    Boolean isAuthorizationChanged = false;
+//    @Column
+//    private String username;
+//    @Column
+//    private boolean isEnabled; ;
+//    @Column
+//    private boolean isAccountNonExpired;
+//    @Column
+//    private boolean isCredentialsNonExpired;
+//    @Column
+//    private boolean isAccountNonLocked;
+//    @OneToMany(cascade = CascadeType.ALL)
+//    private final Set<GrantedAuthority> authorities;
 }

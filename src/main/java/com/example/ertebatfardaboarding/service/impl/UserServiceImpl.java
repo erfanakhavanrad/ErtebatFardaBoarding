@@ -64,7 +64,7 @@ public class UserServiceImpl implements UserService {
             throw new UserException(faMessageSource.getMessage("ALREADY_EXISTS", null, Locale.ENGLISH));
         User user = UserMapper.userMapper.userDtoToUser(userDto);
         user.setPassword(passwordGenerator(userDto));
-        user.setUserName(userDto.getEmail());
+//        user.setUsername(userDto.getEmail());
         User savedUser = userRepository.save(user);
         return UserMapper.userMapper.userToUserDto(savedUser);
     }
@@ -83,7 +83,6 @@ public class UserServiceImpl implements UserService {
         responseModel.setContents(tokens);
         responseModel.setContent(savedUser);
         responseModel.setResult(success);
-
         } else throw new UserException("INVALID_CREDENTIALS");
         return userDto;
     }
