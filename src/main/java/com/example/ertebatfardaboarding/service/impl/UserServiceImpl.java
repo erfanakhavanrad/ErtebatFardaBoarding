@@ -18,6 +18,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -34,10 +35,14 @@ public class UserServiceImpl implements UserService {
     @Autowired
     ResponseModel responseModel;
 
-    @Resource(name = "faMessageSource")
-    private MessageSource faMessageSource;
     @Autowired
     private SecurityService securityService;
+
+    @Autowired
+    EmailServiceImpl emailService;
+
+    @Resource(name = "faMessageSource")
+    private MessageSource faMessageSource;
 
     @Value("${SUCCESS_RESULT}")
     int success;
@@ -65,8 +70,18 @@ public class UserServiceImpl implements UserService {
         User user = UserMapper.userMapper.userDtoToUser(userDto);
         user.setPassword(passwordGenerator(userDto));
 //        user.setUsername(userDto.getEmail());
+//        emailService.sendSimpleEmail("daw", "dawd", "adw");
         User savedUser = userRepository.save(user);
-        return UserMapper.userMapper.userToUserDto(savedUser);
+//        User createdUser = validUserCreation(user);
+//        return UserMapper.userMapper.userToUserDto(createdUser);
+        return null;
+    }
+
+    @Transactional
+    User validUserCreation(User user) {
+        User savedUser = userRepository.save(user);
+//        emailService.sendSimpleEmail(user.getEmail(), "Hello", "123454");
+        return savedUser;
     }
 
     @Override
@@ -78,12 +93,12 @@ public class UserServiceImpl implements UserService {
             throw new UserException(faMessageSource.getMessage("INVALID_CREDENTIALS", null, Locale.ENGLISH));
         if (isPasswordValid(savedUser.get(0), userDto)) {
 
-        List tokens = new ArrayList();
-        tokens.add(securityService.createTokenByUserPasswordAuthentication(userDto.getEmail()));
-        responseModel.setContents(tokens);
-        responseModel.setContent(savedUser);
-        responseModel.setResult(success);
-        } else throw new UserException("INVALID_CREDENTIALS");
+            List tokens = new ArrayList();
+            tokens.add(securityService.createTokenByUserPasswordAuthentication(userDto.getEmail()));
+            responseModel.setContents(tokens);
+            responseModel.setContent(savedUser);
+            responseModel.setResult(success);
+        } else throw new UserException(faMessageSource.getMessage("INVALID_CREDENTIALS", null, Locale.ENGLISH));
         return userDto;
     }
 

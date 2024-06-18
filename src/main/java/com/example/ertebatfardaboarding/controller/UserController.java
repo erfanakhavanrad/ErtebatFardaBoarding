@@ -1,7 +1,6 @@
 package com.example.ertebatfardaboarding.controller;
 
 import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
-import com.example.ertebatfardaboarding.domain.Contact;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
