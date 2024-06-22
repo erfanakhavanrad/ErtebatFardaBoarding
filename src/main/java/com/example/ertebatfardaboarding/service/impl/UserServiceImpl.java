@@ -73,16 +73,15 @@ public class UserServiceImpl implements UserService {
 //        emailService.sendSimpleEmail("daw", "dawd", "adw");
         User savedUser = userRepository.save(user);
 //        User createdUser = validUserCreation(user);
-//        return UserMapper.userMapper.userToUserDto(createdUser);
-        return null;
+        return UserMapper.userMapper.userToUserDto(savedUser);
     }
 
-    @Transactional
-    User validUserCreation(User user) {
-        User savedUser = userRepository.save(user);
+//    @Transactional
+//    User validUserCreation(User user) {
+//        User savedUser = userRepository.save(user);
 //        emailService.sendSimpleEmail(user.getEmail(), "Hello", "123454");
-        return savedUser;
-    }
+//        return null;
+//    }
 
     @Override
     public UserDto loginUser(UserDto userDto, HttpServletRequest httpServletRequest) {
@@ -91,8 +90,10 @@ public class UserServiceImpl implements UserService {
         List<User> savedUser = getUsers(userDtoTemp);
         if (savedUser.isEmpty())
             throw new UserException(faMessageSource.getMessage("INVALID_CREDENTIALS", null, Locale.ENGLISH));
+        if (!savedUser.get(0).getIsActive()) {
+            throw new UserException(faMessageSource.getMessage("NOT_ACTIVE", null, Locale.ENGLISH));
+        }
         if (isPasswordValid(savedUser.get(0), userDto)) {
-
             List tokens = new ArrayList();
             tokens.add(securityService.createTokenByUserPasswordAuthentication(userDto.getEmail()));
             responseModel.setContents(tokens);

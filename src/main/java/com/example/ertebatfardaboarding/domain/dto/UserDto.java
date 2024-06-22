@@ -9,4 +9,6 @@ public class UserDto {
     private String email;
     private String password;
     private String username;
+    private Boolean isActive;
+    private String activationCode;
 }

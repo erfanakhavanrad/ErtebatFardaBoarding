@@ -2,11 +2,8 @@ package com.example.ertebatfardaboarding.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.springframework.security.core.GrantedAuthority;
 
 import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
 
 @Data
 @Entity
@@ -23,9 +20,9 @@ public class User implements Serializable {
     @Column
     private String password;
     @Column
-    Boolean isAuthorizationChanged = false;
-//    @Column
-//    private String username;
+    private Boolean isAuthorizationChanged = false;
+    @Column
+    private Boolean isActive = false;
 //    @Column
 //    private boolean isEnabled; ;
 //    @Column

@@ -1,90 +1,49 @@
 package com.example.ertebatfardaboarding.service.impl;
 
 import com.example.ertebatfardaboarding.service.EmailService;
-import jakarta.mail.*;
-import jakarta.mail.internet.AddressException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 
 
 @Service
 @Slf4j
 public class EmailServiceImpl implements EmailService {
+    private static final String SMTP_HOST_NAME = "smtp.mail.yahoo.com";
+    private static final String SMTP_AUTH_USER = "erfanakhavanrad@yahoo.com";
+    private static final String SMTP_AUTH_PWD = "";
 
-//    @Value("${spring.mail.host}")
-//    String mailServer;
-//
-//    @Value("${spring.mail.username}")
-//    String username;
-//
-//    @Value("${spring.mail.password}")
-//    String mailServerPassword;
-//
-//    @Value("${spring.mail.port}")
-//    String port;
-//
-//    @Value("${sender_email}")
-//    String from;
+    public void sendSimpleEmail(String toEmail, String subject, String body2) throws MessagingException {
+        Properties props = new Properties();
+        props.put("mail.smtp.host", SMTP_HOST_NAME);
+        props.put("mail.smtp.port", "465");
+        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        props.put("mail.smtp.ssl", "true");
+        props.put("mail.smtp.auth", "true");
 
-//    @Autowired
-//    private JavaMailSender javaMailSender;
-//
-//    public void sendSimpleEmail(String toEmail, String subject, String body) {
-//        SimpleMailMessage message = new SimpleMailMessage();
-//        message.setTo(toEmail);
-//        message.setSubject(subject);
-//        message.setText(body);
-//        message.setFrom(from);
-//        javaMailSender.send(message);
-//    }
-//
-//    public void sendHtmlEmail(String toEmail, String subject, String htmlBody) throws MessagingException {
-//        MimeMessage message = javaMailSender.createMimeMessage();
-//        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-//
-//        helper.setTo(toEmail);
-//        helper.setSubject(subject);
-//        helper.setText(htmlBody, true);
-//        helper.setFrom(from);
-//    }
+        Session session = Session.getInstance(props,
+                new javax.mail.Authenticator() {
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(SMTP_AUTH_USER, SMTP_AUTH_PWD);
+                    }
+                });
 
-    String to = "wiweseh516@lisoren.com";
-    String from = "mailtrap@demomailtrap.com";
-    String username = "api";
-    String password = "f8538f1f18fa9011e053e7488836e721";
+        Transport transport = session.getTransport("smtp");
 
-    String host = "live.smtp.mailtrap.io";
+        MimeMessage message = new MimeMessage(session);
+        message.setContent("This is a test", "text/plain");
+        message.setFrom(new InternetAddress("erfanakhavanrad@yahoo.com"));
+        message.addRecipient(Message.RecipientType.TO,
+                new InternetAddress("erfanakhavanrad@yahoo.com"));
 
-
-    public void sendSimpleEmail(String toEmail, String subject, String body) {
-        Properties properties = new Properties();
-        properties.put("mail.smtp.auth", "true");
-        properties.put("mail.smtp.starttls.enable", "true");
-        properties.put("mail.smtp.host", host);
-        properties.put("mail.smtp.port", "587");
-
-        Session session = Session.getInstance(properties, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(username,password);
-            }
-        });
-
-        try{
-            Message message= new MimeMessage(session);
-            message.setFrom(new InternetAddress(from));
-            message.setRecipient(Message.RecipientType.TO,new InternetAddress(to));
-            message.setSubject("My subject");
-            message.setText("MY BODY");
-            Transport.send(message);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
+        transport.connect();
+        transport.sendMessage(message,
+                message.getRecipients(Message.RecipientType.TO));
+        transport.close();
     }
-
 }
+
