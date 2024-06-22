@@ -71,6 +71,13 @@ public class UserController {
         return responseModel;
     }
 
+    @PostMapping(path = "/verify")
+    public ResponseModel verify(@RequestBody UserDto userDto, HttpServletRequest httpServletRequest) throws NoSuchAlgorithmException {
+        log.info("verifying user with ip: {}", ErtebatFardaBoardingApplication.getClientIP(httpServletRequest));
+        responseModel.clear();
+        responseModel.setContent(userService.verifyUser(userDto, httpServletRequest));
+        return responseModel;
+    }
 
     @PostMapping(path = "/login")
     public ResponseModel login(@RequestBody UserDto userDto, HttpServletRequest httpServletRequest) throws NoSuchAlgorithmException {

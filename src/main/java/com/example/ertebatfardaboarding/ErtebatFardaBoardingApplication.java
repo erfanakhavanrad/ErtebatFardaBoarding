@@ -3,16 +3,20 @@ package com.example.ertebatfardaboarding;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.Locale;
 
-@SpringBootApplication
+//@SpringBootApplication
+@SpringBootApplication(exclude = {RedisRepositoriesAutoConfiguration.class})
 //@SpringBootApplication(exclude = org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class)
 public class ErtebatFardaBoardingApplication {
 

@@ -6,26 +6,26 @@ import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
 import com.example.ertebatfardaboarding.domain.mapper.UserMapper;
 import com.example.ertebatfardaboarding.domain.specification.UserSpecification;
+import com.example.ertebatfardaboarding.exception.ContactException;
 import com.example.ertebatfardaboarding.exception.UserException;
 import com.example.ertebatfardaboarding.repo.UserRepository;
 import com.example.ertebatfardaboarding.security.SecurityService;
 import com.example.ertebatfardaboarding.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -40,6 +40,11 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     EmailServiceImpl emailService;
+
+    //    @Autowired
+//    private RedisTemplate redisTemplate;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
@@ -69,11 +74,52 @@ public class UserServiceImpl implements UserService {
             throw new UserException(faMessageSource.getMessage("ALREADY_EXISTS", null, Locale.ENGLISH));
         User user = UserMapper.userMapper.userDtoToUser(userDto);
         user.setPassword(passwordGenerator(userDto));
-//        user.setUsername(userDto.getEmail());
-//        emailService.sendSimpleEmail("daw", "dawd", "adw");
         User savedUser = userRepository.save(user);
-//        User createdUser = validUserCreation(user);
-        return UserMapper.userMapper.userToUserDto(savedUser);
+//        savedUser.set
+        UserDto savedUserDto = UserMapper.userMapper.userToUserDto(savedUser);
+//        savedUserDto.setActivationCode();
+//        redisTemplate.opsForHash().put(savedUserDto.getEmail(), passwordGenerator(), savedUserDto);
+        savedUserDto.setActivationCode(passwordGenerator());
+        redisTemplate.opsForValue().set(savedUserDto.getEmail(), savedUserDto, 30, TimeUnit.SECONDS);
+        return savedUserDto;
+
+    }
+
+    @Override
+    public UserDto verifyUser(UserDto userDto, HttpServletRequest httpServletRequest) throws UserException {
+//        UserDto thisUserDto = (UserDto) redisTemplate.opsForHash().values(userDto.getEmail());
+        UserDto thisUserDto = (UserDto) redisTemplate.opsForValue().get(userDto.getEmail());
+//        UserDto thisUserDto = new UserDto();
+        if (thisUserDto == null || !Objects.equals(thisUserDto.getActivationCode(), userDto.getActivationCode()) || thisUserDto.getIsActive())
+            throw new UserException(faMessageSource.getMessage("INVALID_OTP", null, Locale.ENGLISH));
+        else {
+            userDto.setIsActive(true);
+            User updateUser = updateUser(userDto, httpServletRequest);
+            return UserMapper.userMapper.userToUserDto(updateUser);
+        }
+    }
+
+    @SneakyThrows
+    @Override
+    public User updateUser(UserDto userDto, HttpServletRequest httpServletRequest) throws ContactException {
+        User oldUser = userRepository.findByEmail(userDto.getEmail());
+        if (oldUser == null) {
+            throw new UserException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
+        }
+        User newUser = UserMapper.userMapper.userDtoToUser(userDto);
+        responseModel.clear();
+        User updated = (User) responseModel.merge(oldUser, newUser);
+        return userRepository.save(updated);
+    }
+
+    @Override
+    public User getUserById(Long id) throws Exception {
+        return userRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
+    }
+
+
+    private String passwordGenerator() {
+        return String.format("%06d", new Random().nextInt(1000000));
     }
 
 //    @Transactional
