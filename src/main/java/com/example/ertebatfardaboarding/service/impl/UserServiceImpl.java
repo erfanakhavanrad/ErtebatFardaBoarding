@@ -6,14 +6,12 @@ import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
 import com.example.ertebatfardaboarding.domain.mapper.UserMapper;
 import com.example.ertebatfardaboarding.domain.specification.UserSpecification;
-import com.example.ertebatfardaboarding.exception.ContactException;
 import com.example.ertebatfardaboarding.exception.UserException;
 import com.example.ertebatfardaboarding.repo.UserRepository;
 import com.example.ertebatfardaboarding.security.SecurityService;
 import com.example.ertebatfardaboarding.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -41,8 +39,6 @@ public class UserServiceImpl implements UserService {
     @Autowired
     EmailServiceImpl emailService;
 
-    //    @Autowired
-//    private RedisTemplate redisTemplate;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -72,62 +68,28 @@ public class UserServiceImpl implements UserService {
     public UserDto registerUser(UserDto userDto, HttpServletRequest httpServletRequest) throws UserException {
         if (!getUsers(userDto).isEmpty())
             throw new UserException(faMessageSource.getMessage("ALREADY_EXISTS", null, Locale.ENGLISH));
-        User user = UserMapper.userMapper.userDtoToUser(userDto);
-        user.setPassword(passwordGenerator(userDto));
-        User savedUser = userRepository.save(user);
-//        savedUser.set
-        UserDto savedUserDto = UserMapper.userMapper.userToUserDto(savedUser);
-//        savedUserDto.setActivationCode();
-//        redisTemplate.opsForHash().put(savedUserDto.getEmail(), passwordGenerator(), savedUserDto);
-        savedUserDto.setActivationCode(passwordGenerator());
-        redisTemplate.opsForValue().set(savedUserDto.getEmail(), savedUserDto, 30, TimeUnit.SECONDS);
-        return savedUserDto;
-
+        userDto.setPassword(passwordGenerator(userDto));
+        userDto.setActivationCode(passwordGenerator());
+        redisTemplate.opsForValue().set(userDto.getEmail(), userDto, 50, TimeUnit.SECONDS);
+        return userDto;
     }
 
     @Override
     public UserDto verifyUser(UserDto userDto, HttpServletRequest httpServletRequest) throws UserException {
-//        UserDto thisUserDto = (UserDto) redisTemplate.opsForHash().values(userDto.getEmail());
         UserDto thisUserDto = (UserDto) redisTemplate.opsForValue().get(userDto.getEmail());
-//        UserDto thisUserDto = new UserDto();
         if (thisUserDto == null || !Objects.equals(thisUserDto.getActivationCode(), userDto.getActivationCode()) || thisUserDto.getIsActive())
             throw new UserException(faMessageSource.getMessage("INVALID_OTP", null, Locale.ENGLISH));
         else {
-            userDto.setIsActive(true);
-            User updateUser = updateUser(userDto, httpServletRequest);
-            return UserMapper.userMapper.userToUserDto(updateUser);
+            thisUserDto.setIsActive(true);
+            User newUser = UserMapper.userMapper.userDtoToUser(thisUserDto);
+            User savedUser = userRepository.save(newUser);
+            return UserMapper.userMapper.userToUserDto(savedUser);
         }
     }
-
-    @SneakyThrows
-    @Override
-    public User updateUser(UserDto userDto, HttpServletRequest httpServletRequest) throws ContactException {
-        User oldUser = userRepository.findByEmail(userDto.getEmail());
-        if (oldUser == null) {
-            throw new UserException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
-        }
-        User newUser = UserMapper.userMapper.userDtoToUser(userDto);
-        responseModel.clear();
-        User updated = (User) responseModel.merge(oldUser, newUser);
-        return userRepository.save(updated);
-    }
-
-    @Override
-    public User getUserById(Long id) throws Exception {
-        return userRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
-    }
-
 
     private String passwordGenerator() {
         return String.format("%06d", new Random().nextInt(1000000));
     }
-
-//    @Transactional
-//    User validUserCreation(User user) {
-//        User savedUser = userRepository.save(user);
-//        emailService.sendSimpleEmail(user.getEmail(), "Hello", "123454");
-//        return null;
-//    }
 
     @Override
     public UserDto loginUser(UserDto userDto, HttpServletRequest httpServletRequest) {
@@ -142,11 +104,12 @@ public class UserServiceImpl implements UserService {
         if (isPasswordValid(savedUser.get(0), userDto)) {
             List tokens = new ArrayList();
             tokens.add(securityService.createTokenByUserPasswordAuthentication(userDto.getEmail()));
+            responseModel.clear();
             responseModel.setContents(tokens);
             responseModel.setContent(savedUser);
             responseModel.setResult(success);
         } else throw new UserException(faMessageSource.getMessage("INVALID_CREDENTIALS", null, Locale.ENGLISH));
-        return userDto;
+        return UserMapper.userMapper.userToUserDto(savedUser.get(0));
     }
 
     @Override
