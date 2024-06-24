@@ -1,6 +1,7 @@
 package com.example.ertebatfardaboarding.controller;
 
 import com.example.ertebatfardaboarding.domain.ResponseModel;
+import com.example.ertebatfardaboarding.exception.AttachmentException;
 import com.example.ertebatfardaboarding.exception.ContactException;
 import com.example.ertebatfardaboarding.exception.UserException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,16 @@ public class ControllerAdvisory extends ResponseEntityExceptionHandler {
         responseModel.setError("contactException with message: " + userException.getMessage());
         responseModel.setResult(fail);
         responseModel.setStatus(HttpStatus.CONFLICT.value());
+        responseModel.setTimestamp(String.valueOf(LocalDateTime.now()));
+        return responseModel;
+    }
+
+    @ResponseBody
+    @ExceptionHandler(AttachmentException.class)
+    public ResponseModel handleAttachmentException(AttachmentException attachmentException, WebRequest webRequest) {
+        responseModel.setError("attachmentException with message: " + attachmentException.getMessage());
+        responseModel.setResult(fail);
+        responseModel.setStatus(HttpStatus.BAD_REQUEST.value());
         responseModel.setTimestamp(String.valueOf(LocalDateTime.now()));
         return responseModel;
     }

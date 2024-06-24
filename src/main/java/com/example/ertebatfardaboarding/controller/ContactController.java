@@ -5,7 +5,6 @@ import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.dto.ContactDto;
 import com.example.ertebatfardaboarding.exception.ContactException;
 import com.example.ertebatfardaboarding.service.ContactService;
-import com.example.ertebatfardaboarding.service.FileStorageService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,9 +15,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.Locale;
 
@@ -33,8 +29,8 @@ public class ContactController {
     @Autowired
     ContactService contactService;
 
-    @Autowired
-    FileStorageService fileStorageService;
+//    @Autowired
+//    FileStorageService fileStorageService;
 
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
@@ -117,15 +113,6 @@ public class ContactController {
         }
         return responseModel;
     }
-
-    @PostMapping("/uploadPhoto")
-    public ResponseModel uploadPhoto(@RequestParam("File") MultipartFile file) throws IOException {
-        responseModel.clear();
-        String fileName = fileStorageService.storeFile(file);
-        responseModel.setContent(fileName);
-        return responseModel;
-    }
-
     @PutMapping("/update")
     public ResponseModel update(@RequestBody ContactDto contactDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ContactException {
         log.info("update contact");

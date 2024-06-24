@@ -1,21 +1,20 @@
 package com.example.ertebatfardaboarding.security;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component
 @Scope("session")
 public class SecurityModel {
-    Object accessToken, refreshToken;
+    Object accessToken, refreshToken, fileToken;
 
     public SecurityModel() {
     }
 
-    public SecurityModel(Object accessToken, Object refreshToken) {
+    public SecurityModel(Object accessToken, Object refreshToken, Object fileToken) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
+        this.fileToken = fileToken;
     }
 
     public Object getAccessToken() {
@@ -32,5 +31,13 @@ public class SecurityModel {
 
     public void setRefreshToken(Object refreshToken) {
         this.refreshToken = refreshToken;
+    }
+
+    public Object getFileToken() {
+        return fileToken;
+    }
+
+    public void setFileToken(Object fileToken) {
+        this.fileToken = fileToken;
     }
 }
