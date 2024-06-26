@@ -1,4 +1,4 @@
-package com.example.ertebatfardaboarding.utils;
+package com.example.ertebatfardaboarding.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -21,13 +21,7 @@ public class Attachment {
     private String username;
     @Column
     private String token;
+//    @OneToOne(mappedBy = "attachment")
+//    private Contact contact;
 
-    public Attachment(String fileName, String fileType, String accessUrl) {
-        this.fileName = fileName;
-        this.fileType = fileType;
-        this.accessUrl = accessUrl;
-    }
-
-    public Attachment() {
-    }
 }

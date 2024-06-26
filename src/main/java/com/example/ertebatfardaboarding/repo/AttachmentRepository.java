@@ -1,6 +1,6 @@
 package com.example.ertebatfardaboarding.repo;
 
-import com.example.ertebatfardaboarding.utils.Attachment;
+import com.example.ertebatfardaboarding.domain.Attachment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

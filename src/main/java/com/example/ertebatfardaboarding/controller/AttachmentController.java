@@ -2,8 +2,8 @@ package com.example.ertebatfardaboarding.controller;
 
 import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.service.FileStorageService;
-import com.example.ertebatfardaboarding.utils.Attachment;
-import com.example.ertebatfardaboarding.utils.AttachmentDto;
+import com.example.ertebatfardaboarding.domain.Attachment;
+import com.example.ertebatfardaboarding.domain.AttachmentDto;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -21,4 +21,11 @@ public class Contact implements Serializable {
     //    @OneToMany(fetch = FetchType.EAGER, mappedBy = "contact", cascade = CascadeType.ALL)
     @OneToMany(cascade = CascadeType.ALL)
     private List<ContactDetail> contactDetailList;
+
+//    @OneToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "attachment_id", referencedColumnName = "id")
+//    private Attachment attachment;
+    @Column
+    private Long attachmentId;
+
 }

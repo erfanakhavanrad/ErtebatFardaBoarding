@@ -5,6 +5,8 @@ import com.example.ertebatfardaboarding.domain.dto.ContactDto;
 import com.example.ertebatfardaboarding.exception.ContactException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ContactService {
     ContactDto createContact(ContactDto contactDto, HttpServletRequest httpServletRequest) throws Exception;
@@ -16,5 +18,7 @@ public interface ContactService {
     Contact getContactById(Long id) throws Exception;
 
     void deleteContact(Long id);
+
+    ContactDto createContactWithAttachment(ContactDto contactDto, HttpServletRequest httpServletRequest) throws Exception;
 }
 

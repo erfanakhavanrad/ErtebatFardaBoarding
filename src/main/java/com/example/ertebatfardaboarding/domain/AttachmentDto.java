@@ -1,4 +1,4 @@
-package com.example.ertebatfardaboarding.utils;
+package com.example.ertebatfardaboarding.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Lob;

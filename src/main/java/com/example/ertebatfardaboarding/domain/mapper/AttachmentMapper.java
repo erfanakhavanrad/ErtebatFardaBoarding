@@ -1,7 +1,7 @@
 package com.example.ertebatfardaboarding.domain.mapper;
 
-import com.example.ertebatfardaboarding.utils.Attachment;
-import com.example.ertebatfardaboarding.utils.AttachmentDto;
+import com.example.ertebatfardaboarding.domain.Attachment;
+import com.example.ertebatfardaboarding.domain.AttachmentDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

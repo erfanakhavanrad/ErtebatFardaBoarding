@@ -5,8 +5,8 @@ import com.example.ertebatfardaboarding.domain.mapper.AttachmentMapper;
 import com.example.ertebatfardaboarding.exception.AttachmentException;
 import com.example.ertebatfardaboarding.repo.AttachmentRepository;
 import com.example.ertebatfardaboarding.service.FileStorageService;
-import com.example.ertebatfardaboarding.utils.Attachment;
-import com.example.ertebatfardaboarding.utils.AttachmentDto;
+import com.example.ertebatfardaboarding.domain.Attachment;
+import com.example.ertebatfardaboarding.domain.AttachmentDto;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +45,9 @@ public class FileStorageServiceImpl implements FileStorageService {
     private MessageSource faMessageSource;
 
     private final Path fileStorageLocation;
+
+    @Value("${file.upload-dir}")
+    String uploadDir;
 
     @Override
     public Page<Attachment> getAttachments(Integer pageNo, Integer perPage) throws Exception {
@@ -86,10 +89,11 @@ public class FileStorageServiceImpl implements FileStorageService {
         Attachment attachment = new Attachment();
         attachment.setFileName(fileName);
         attachment.setFileType(file.getContentType());
-        attachment.setAccessUrl(targetLocation.toString());
+        attachment.setAccessUrl(uploadDir + "/" + fileName);
         attachment.setUsername(username);
 
         Attachment savedAttachment = attachmentRepository.save(attachment);
+        attachment.setAccessUrl(targetLocation.toString());
         return AttachmentMapper.attachmentMapper.attachmentToAttachmentDto(savedAttachment);
     }
 
@@ -117,6 +121,8 @@ public class FileStorageServiceImpl implements FileStorageService {
         Attachment attachmentById = getAttachmentById(photoId);
         if (userDetails == null || attachmentById == null)
             throw new AttachmentException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
+        Path targetLocation = this.fileStorageLocation.resolve(attachmentById.getFileName());
+        attachmentById.setAccessUrl(targetLocation.toString());
         return attachmentById;
     }
 

@@ -9,6 +9,7 @@ import com.example.ertebatfardaboarding.domain.mapper.ContactMapper;
 import com.example.ertebatfardaboarding.exception.ContactException;
 import com.example.ertebatfardaboarding.repo.ContactRepository;
 import com.example.ertebatfardaboarding.service.ContactService;
+import com.example.ertebatfardaboarding.service.FileStorageService;
 import com.example.ertebatfardaboarding.utils.Utils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 
@@ -30,6 +32,9 @@ public class ContactServiceImpl implements ContactService {
     ContactRepository contactRepository;
 
     @Autowired
+    FileStorageService fileStorageService;
+
+    @Autowired
     ResponseModel responseModel;
 
     @Resource(name = "faMessageSource")
@@ -39,7 +44,6 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public ContactDto createContact(ContactDto contactDto, HttpServletRequest httpServletRequest) throws Exception {
-
         for (int i = 0; i < contactDto.getContactDetailList().size(); i++) {
             ContactDetailDto details = contactDto.getContactDetailList().get(i);
             contactDto.getContactDetailList().set(i, details);
@@ -50,13 +54,38 @@ public class ContactServiceImpl implements ContactService {
         return contactDto1;
     }
 
+    @Override
+    @Transactional
+    public ContactDto createContactWithAttachment(ContactDto contactDto, HttpServletRequest httpServletRequest) throws Exception {
+
+        for (int i = 0; i < contactDto.getContactDetailList().size(); i++) {
+            ContactDetailDto details = contactDto.getContactDetailList().get(i);
+            contactDto.getContactDetailList().set(i, details);
+        }
+        Contact contact = ContactMapper.contactMapper.contactDtoToContact(contactDto);
+        Contact savedContact = contactRepository.save(contact);
+        ContactDto contactDto1 = ContactMapper.contactMapper.contactToContactDto(savedContact);
+        return contactDto1;
+
+//        for (int i = 0; i < contactDto.getContactDetailList().size(); i++) {
+//            ContactDetailDto details = contactDto.getContactDetailList().get(i);
+//            contactDto.getContactDetailList().set(i, details);
+//        }
+//        Contact contact = ContactMapper.contactMapper.contactDtoToContact(contactDto);
+//        Contact savedContact = contactRepository.save(contact);
+//        ContactDto contactDto1 = ContactMapper.contactMapper.contactToContactDto(savedContact);
+//        Attachment attachment = AttachmentMapper.attachmentMapper.attachmentDtoToAttachment(attachmentDto);
+//        contactDto1.setAttachment(attachment);
+//        return contactDto1;
+    }
+
     @SneakyThrows
     @Override
     public Contact updateContact(ContactDto contactDto, HttpServletRequest httpServletRequest) throws ContactException {
 //        Contact oldContact = getContactById(contactDto.getId());
         Contact oldContact;
-        if (!contactRepository.existsById(contactDto.getId())){
-        throw new ContactException("Contact not found here.");
+        if (!contactRepository.existsById(contactDto.getId())) {
+            throw new ContactException("Contact not found here.");
         }
         oldContact = getContactById(contactDto.getId());
         Contact newContact = ContactMapper.contactMapper.contactDtoToContact(contactDto);

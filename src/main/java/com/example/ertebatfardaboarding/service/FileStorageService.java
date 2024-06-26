@@ -1,7 +1,7 @@
 package com.example.ertebatfardaboarding.service;
 
-import com.example.ertebatfardaboarding.utils.Attachment;
-import com.example.ertebatfardaboarding.utils.AttachmentDto;
+import com.example.ertebatfardaboarding.domain.Attachment;
+import com.example.ertebatfardaboarding.domain.AttachmentDto;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;

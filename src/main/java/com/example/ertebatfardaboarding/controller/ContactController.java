@@ -5,6 +5,7 @@ import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.dto.ContactDto;
 import com.example.ertebatfardaboarding.exception.ContactException;
 import com.example.ertebatfardaboarding.service.ContactService;
+import com.example.ertebatfardaboarding.service.FileStorageService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,7 +15,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.nio.file.AccessDeniedException;
 import java.util.Locale;
 
@@ -28,9 +32,6 @@ public class ContactController {
 
     @Autowired
     ContactService contactService;
-
-//    @Autowired
-//    FileStorageService fileStorageService;
 
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
@@ -87,7 +88,6 @@ public class ContactController {
         return responseModel;
     }
 
-
     @PostMapping(path = "/save")
     public ResponseModel save(@RequestBody ContactDto contactDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
@@ -113,6 +113,33 @@ public class ContactController {
         }
         return responseModel;
     }
+
+    @PostMapping(path = "/saveWithAttachment")
+    public ResponseModel saveWithAttachment(@RequestBody ContactDto contactDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        try {
+            log.info("create contact");
+            responseModel.clear();
+            responseModel.setContent(contactService.createContactWithAttachment(contactDto, httpServletRequest));
+            responseModel.setResult(success);
+            responseModel.setStatus(httpServletResponse.getStatus());
+        } catch (AccessDeniedException accessDeniedException) {
+            responseModel.setError(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
+            responseModel.setResult(fail);
+            responseModel.setSystemError(accessDeniedException.getMessage());
+            responseModel.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        } catch (DataIntegrityViolationException dataIntegrityViolationException) {
+            responseModel.setSystemError(dataIntegrityViolationException.getMessage());
+            responseModel.setError(dataIntegrityViolationException.getMessage());
+            responseModel.setResult(fail);
+            responseModel.setStatus(httpServletResponse.getStatus());
+        } catch (Exception e) {
+            responseModel.setError(e.getMessage());
+            responseModel.setResult(fail);
+            responseModel.setStatus(httpServletResponse.getStatus());
+        }
+        return responseModel;
+    }
+
     @PutMapping("/update")
     public ResponseModel update(@RequestBody ContactDto contactDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ContactException {
         log.info("update contact");
