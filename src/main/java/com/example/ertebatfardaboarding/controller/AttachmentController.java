@@ -11,7 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -86,22 +91,37 @@ public class AttachmentController {
 
 
     @PostMapping("/uploadPhoto")
-    public ResponseModel uploadPhoto(@RequestParam("File") MultipartFile file) throws IOException {
+    public ResponseModel uploadPhoto(@RequestParam("File") MultipartFile file, Authentication authentication) throws IOException {
         responseModel.clear();
-        AttachmentDto attachmentDto = fileStorageService.storeFile(file);
+        AttachmentDto attachmentDto = fileStorageService.storeFile(file, authentication);
         responseModel.setContent(attachmentDto);
         return responseModel;
     }
 
-    @GetMapping("/downloadPhoto/{photoId}")
-    public ResponseModel downloadPhoto(@PathVariable String photoId) throws Exception {
+    @GetMapping("/allUserPhotos")
+    public ResponseModel getAllUserPhotos(@RequestParam Long photoId, @RequestParam String fileToken, HttpServletResponse httpServletResponse) throws Exception {
         responseModel.clear();
-//        String s = fileStorageService.storeFile2(file);
-        Attachment file = fileStorageService.getFile(photoId);
+        Attachment file = fileStorageService.getAllUserPhotos(photoId, fileToken, httpServletResponse);
         responseModel.setContent(file);
-//        responseModel.setContent(s);
+        responseModel.setRecordCount(1);
+        responseModel.setResult(success);
+        responseModel.setStatus(httpServletResponse.getStatus());
         return responseModel;
     }
 
+    @GetMapping("/getAllUserPhotosAsPhoto")
+    public ResponseEntity<org.springframework.core.io.Resource> getAllUserPhotosAsPhoto(@RequestParam Long photoId, @RequestParam String fileToken, HttpServletResponse httpServletResponse) throws Exception {
+        responseModel.clear();
+        AttachmentDto file = fileStorageService.getAllUserPhotosAsPhoto(photoId, fileToken, httpServletResponse);
+        responseModel.setContent(file);
+        responseModel.setRecordCount(1);
+        responseModel.setResult(success);
+        responseModel.setStatus(httpServletResponse.getStatus());
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(file.getFileType()))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileName()
+                        + "\"")
+                .body(new ByteArrayResource(file.getFileData()));
+    }
 
 }

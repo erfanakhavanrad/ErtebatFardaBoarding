@@ -33,9 +33,10 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                 .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/user/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/user/verify").permitAll()
-                .requestMatchers(HttpMethod.POST, "/attachment/uploadPhoto").permitAll()
                 .requestMatchers(HttpMethod.GET, "/attachment/getAll").permitAll()
                 .requestMatchers(HttpMethod.GET, "/attachment/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/attachment/allUserPhotos").permitAll()
+                .requestMatchers(HttpMethod.GET, "/attachment/getAllUserPhotosAsPhoto").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                 .permitAll()
                 .anyRequest().authenticated());

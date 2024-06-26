@@ -2,7 +2,6 @@ package com.example.ertebatfardaboarding.utils;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Data
@@ -18,7 +17,10 @@ public class Attachment {
     private String fileType;
     @Column
     private String accessUrl;
-
+    @Column
+    private String username;
+    @Column
+    private String token;
 
     public Attachment(String fileName, String fileType, String accessUrl) {
         this.fileName = fileName;

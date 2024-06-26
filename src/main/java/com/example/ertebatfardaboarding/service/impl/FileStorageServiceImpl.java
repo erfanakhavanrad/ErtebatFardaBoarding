@@ -8,14 +8,21 @@ import com.example.ertebatfardaboarding.service.FileStorageService;
 import com.example.ertebatfardaboarding.utils.Attachment;
 import com.example.ertebatfardaboarding.utils.AttachmentDto;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,11 +31,15 @@ import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 import java.util.Objects;
 
+
 @Service
 public class FileStorageServiceImpl implements FileStorageService {
 
     @Autowired
     AttachmentRepository attachmentRepository;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
@@ -56,7 +67,10 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
     }
 
-    public AttachmentDto storeFile(MultipartFile file) throws IOException {
+    public AttachmentDto storeFile(MultipartFile file, Authentication authentication) throws IOException {
+//        String token = UUID.randomUUID().toString();
+        String username = authentication.getName();
+
         String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         if (fileName.contains("..")) {
             throw new AttachmentException(faMessageSource.getMessage("INVALID_PATH", null, Locale.ENGLISH) + fileName);
@@ -73,33 +87,20 @@ public class FileStorageServiceImpl implements FileStorageService {
         attachment.setFileName(fileName);
         attachment.setFileType(file.getContentType());
         attachment.setAccessUrl(targetLocation.toString());
+        attachment.setUsername(username);
 
         Attachment savedAttachment = attachmentRepository.save(attachment);
         return AttachmentMapper.attachmentMapper.attachmentToAttachmentDto(savedAttachment);
     }
 
-    @Override
-    public Attachment getFile(String fileId) throws Exception {
-        return attachmentRepository.findById(Long.valueOf(fileId)).orElseThrow(() -> new Exception(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
+
+    public Attachment getAttachmentByToken(String token) {
+        return attachmentRepository.findByToken(token);
     }
 
-    public String storeFile2(MultipartFile file) {
-        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-
-        try {
-            if (fileName.contains("..")) {
-                throw new RuntimeException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH) + fileName);
-            }
-
-            Path targetLocation = this.fileStorageLocation.resolve(fileName);
-            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-
-            return fileName;
-        } catch (IOException ex) {
-            throw new RuntimeException("Could not store file " + fileName + ". Please try again!", ex);
-        }
+    public Page<Attachment> getAttachmentByUserName(String username, Integer pageNo, Integer perPage) {
+        return attachmentRepository.findByUsername(username, ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
     }
-
 
     public Path loadFileAsResource(String fileName) {
         try {
@@ -107,6 +108,35 @@ public class FileStorageServiceImpl implements FileStorageService {
             return filePath;
         } catch (Exception ex) {
             throw new RuntimeException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH) + fileName, ex);
+        }
+    }
+
+    @Override
+    public Attachment getAllUserPhotos(Long photoId, String fileToken, HttpServletResponse httpServletResponse) throws Exception {
+        UserDetails userDetails = (UserDetails) redisTemplate.opsForValue().get(fileToken);
+        Attachment attachmentById = getAttachmentById(photoId);
+        if (userDetails == null || attachmentById == null)
+            throw new AttachmentException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
+        return attachmentById;
+    }
+
+    @Override
+    public AttachmentDto getAllUserPhotosAsPhoto(Long photoId, String fileToken, HttpServletResponse httpServletResponse) throws Exception {
+        UserDetails userDetails = (UserDetails) redisTemplate.opsForValue().get(fileToken);
+        Attachment attachmentById = getAttachmentById(photoId);
+        if (userDetails == null || attachmentById == null)
+            throw new AttachmentException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
+        String accessUrl = attachmentById.getAccessUrl().replaceAll("(?<!http:)//", "/");
+        AttachmentDto attachmentDto = AttachmentMapper.attachmentMapper.attachmentToAttachmentDto(attachmentById);
+        attachmentDto.setFileData(readImageAsByteArray(accessUrl));
+        return attachmentDto;
+    }
+
+    public static byte[] readImageAsByteArray(String filePath) throws IOException {
+        File file = new File(filePath);
+        try (FileInputStream inputStream = new FileInputStream(file)) {
+            byte[] byteArray = FileCopyUtils.copyToByteArray(inputStream);
+            return byteArray;
         }
     }
 

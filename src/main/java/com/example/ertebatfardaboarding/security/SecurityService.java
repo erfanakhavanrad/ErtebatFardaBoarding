@@ -8,12 +8,16 @@ import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
@@ -25,8 +29,8 @@ public class SecurityService {
     @Autowired
     UserDetailsService userDetailsService;
 
-//    @Autowired
-//    UserService userServiceawd;
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     @Value("${SUCCESS_RESULT}")
     int success;
@@ -41,8 +45,9 @@ public class SecurityService {
         UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
         final String token = generateToken(userDetails);
         final String refreshToken = refreshToken(userDetails);
-        final String fileToken = fileToken(userDetails);
-        return new SecurityModel(token,refreshToken,fileToken);
+        final String fileToken = fileToken();
+        redisTemplate.opsForValue().set(fileToken, userDetails);
+        return new SecurityModel(token, refreshToken, fileToken);
     }
 
     private String generateToken(UserDetails user) {
@@ -68,15 +73,8 @@ public class SecurityService {
         return refresh_token;
     }
 
-    private String fileToken(UserDetails user) {
-        Algorithm algorithm = Algorithm.HMAC256(GlobalConstants.SECRET_KEY.getBytes());
-        String fileToken = JWT.create()
-                .withSubject(user.getUsername())
-                .withAudience(user.getPassword())
-                .withClaim(GlobalConstants.CLAIM_NAME, user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
-                .withExpiresAt(new Date(System.currentTimeMillis() + GlobalConstants.REFRESH_TOKEN_EXPIRATION * 60 * 1000))
-                .sign(algorithm);
-        return fileToken;
+    private String fileToken() {
+        return UUID.randomUUID().toString();
     }
 
 
