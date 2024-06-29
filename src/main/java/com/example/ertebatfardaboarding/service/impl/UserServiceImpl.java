@@ -2,11 +2,13 @@ package com.example.ertebatfardaboarding.service.impl;
 
 import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
+import com.example.ertebatfardaboarding.domain.Role;
 import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
 import com.example.ertebatfardaboarding.domain.mapper.UserMapper;
 import com.example.ertebatfardaboarding.domain.specification.UserSpecification;
 import com.example.ertebatfardaboarding.exception.UserException;
+import com.example.ertebatfardaboarding.repo.RoleRepository;
 import com.example.ertebatfardaboarding.repo.UserRepository;
 import com.example.ertebatfardaboarding.security.SecurityService;
 import com.example.ertebatfardaboarding.service.UserService;
@@ -50,6 +52,8 @@ public class UserServiceImpl implements UserService {
 
     @Value("${FAIL_RESULT}")
     int fail;
+    @Autowired
+    private RoleRepository roleRepository;
 
     public List<User> getUsers(UserDto userDto) {
         Specification<User> specification = Specification.where(null);
@@ -75,16 +79,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto verifyUser(UserDto userDto, HttpServletRequest httpServletRequest) throws UserException {
+    public UserDto verifyUser(UserDto userDto, HttpServletRequest httpServletRequest) throws Exception {
         UserDto thisUserDto = (UserDto) redisTemplate.opsForValue().get(userDto.getEmail());
         if (thisUserDto == null || !Objects.equals(thisUserDto.getActivationCode(), userDto.getActivationCode()) || thisUserDto.getIsActive())
             throw new UserException(faMessageSource.getMessage("INVALID_OTP", null, Locale.ENGLISH));
         else {
             thisUserDto.setIsActive(true);
+            Role role = fillInRoleAndPrivileges(thisUserDto.getRoles().get(0).getId());
+            List<Role> roleList = new ArrayList<>();
+            roleList.add(role);
+            thisUserDto.setRoles(roleList);
             User newUser = UserMapper.userMapper.userDtoToUser(thisUserDto);
             User savedUser = userRepository.save(newUser);
             return UserMapper.userMapper.userToUserDto(savedUser);
         }
+    }
+
+    private Role fillInRoleAndPrivileges(Long id) throws Exception {
+        return roleRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
+
     }
 
     private String passwordGenerator() {
@@ -143,5 +156,8 @@ public class UserServiceImpl implements UserService {
         return Objects.equals(savedUser.getPassword(), passwordGenerator(userDto));
     }
 
-
+    @Override
+    public void deleteUser(Long id) throws Exception {
+        userRepository.deleteById(id);
+    }
 }

@@ -34,17 +34,6 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
     @Autowired
     ResponseModel responseModel;
 
-
-//    @Override
-//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-//        try {
-//            username =null;
-//            username =dDosControlService.tokenVerification(request);
-//            if (username != null && userDetailsService.loadUserByUsername(username).geti)
-//        }catch (){}
-//    }
-
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
@@ -81,16 +70,6 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
             Gson gson = new Gson();
             response.getWriter().write(gson.toJson(responseModel));
         }
-//        if (username != null) {
-//            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-//            if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
-//                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-//                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-//                usernamePasswordAuthenticationToken
-//                        .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-//            }
-//        }
         chain.doFilter(request, response);
     }
 

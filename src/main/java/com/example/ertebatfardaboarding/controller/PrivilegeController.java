@@ -1,10 +1,9 @@
 package com.example.ertebatfardaboarding.controller;
 
-import com.example.ertebatfardaboarding.domain.Contact;
+import com.example.ertebatfardaboarding.domain.Privilege;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
-import com.example.ertebatfardaboarding.domain.dto.ContactDto;
-import com.example.ertebatfardaboarding.exception.ContactException;
-import com.example.ertebatfardaboarding.service.ContactService;
+import com.example.ertebatfardaboarding.domain.dto.PrivilegeDto;
+import com.example.ertebatfardaboarding.service.PrivilegeService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -14,21 +13,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
 import java.util.Locale;
 
 @RestController
-@RequestMapping("contact")
+@RequestMapping("privilege")
 @Slf4j
-public class ContactController {
-
+public class PrivilegeController {
     @Autowired
     ResponseModel responseModel;
-
-    @Autowired
-    ContactService contactService;
 
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
@@ -39,58 +34,62 @@ public class ContactController {
     @Value("${FAIL_RESULT}")
     int fail;
 
-    // Params as class
+    @Autowired
+    PrivilegeService privilegeService;
+
     @GetMapping("/getAll")
     public ResponseModel getAll(@RequestParam Integer pageNo, Integer perPage, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
+            log.info("getAll Privilege");
             responseModel.clear();
-            log.info("get all contacts");
-            Page<Contact> contacts = contactService.getContacts(pageNo, perPage);
-            responseModel.setContents(contacts.getContent());
+            Page<Privilege> privileges = privilegeService.getPrivileges(pageNo, perPage);
+            responseModel.setContents(privileges.getContent());
             responseModel.setResult(success);
-            responseModel.setRecordCount((int) contacts.getTotalElements());
+            responseModel.setRecordCount((int) privileges.getTotalElements());
             responseModel.setStatus(httpServletResponse.getStatus());
-        } catch (AccessDeniedException accessDeniedException) {
-            responseModel.setError(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
+        } catch (DataIntegrityViolationException dataIntegrityViolationException) {
+            responseModel.setSystemError(dataIntegrityViolationException.getMessage());
+            responseModel.setError(dataIntegrityViolationException.getMessage());
+            responseModel.setStatus(httpServletResponse.getStatus());
             responseModel.setResult(fail);
-            responseModel.setSystemError(accessDeniedException.getMessage());
-            responseModel.setStatus(HttpServletResponse.SC_FORBIDDEN);
         } catch (Exception e) {
             responseModel.setError(e.getMessage());
-            responseModel.setResult(fail);
             responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.setResult(fail);
         }
         return responseModel;
     }
 
-    @GetMapping("/getById")
+
+    @GetMapping(path = "/getById")
     public ResponseModel getById(@RequestParam Long id, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
-            log.info("get contact by id");
+            log.info("getById Privilege");
             responseModel.clear();
-            responseModel.setContent(contactService.getContactById(id));
-            responseModel.setRecordCount(1);
+            responseModel.setContent(privilegeService.getPrivilegeById(id));
             responseModel.setResult(success);
             responseModel.setStatus(httpServletResponse.getStatus());
-        } catch (AccessDeniedException accessDeniedException) {
-            responseModel.setError(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
-            responseModel.setResult(fail);
-            responseModel.setSystemError(accessDeniedException.getMessage());
-            responseModel.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        } catch (Exception e) {
+        } catch (DataIntegrityViolationException dataIntegrityViolationException) {
+            responseModel.setSystemError(dataIntegrityViolationException.getMessage());
+            responseModel.setError(dataIntegrityViolationException.getMessage());
             responseModel.setStatus(httpServletResponse.getStatus());
             responseModel.setResult(fail);
+        } catch (Exception e) {
             responseModel.setError(e.getMessage());
+            responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.setResult(fail);
         }
         return responseModel;
     }
 
-    @PostMapping(path = "/save")
-    public ResponseModel save(@RequestBody ContactDto contactDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+
+    @PostMapping("/save")
+    public ResponseModel save(@RequestBody PrivilegeDto privilegeDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+
         try {
-            log.info("create contact");
+            log.info("save Privilege");
             responseModel.clear();
-            responseModel.setContent(contactService.createContact(contactDto, httpServletRequest));
+            responseModel.setContent(privilegeService.createPrivilege(privilegeDto, httpServletRequest));
             responseModel.setResult(success);
             responseModel.setStatus(httpServletResponse.getStatus());
         } catch (AccessDeniedException accessDeniedException) {
@@ -101,24 +100,24 @@ public class ContactController {
         } catch (DataIntegrityViolationException dataIntegrityViolationException) {
             responseModel.setSystemError(dataIntegrityViolationException.getMessage());
             responseModel.setError(dataIntegrityViolationException.getMessage());
-            responseModel.setResult(fail);
             responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.setResult(fail);
         } catch (Exception e) {
-            responseModel.setError(e.getMessage());
-            responseModel.setResult(fail);
             responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.setResult(fail);
+            responseModel.setError(e.getMessage());
         }
         return responseModel;
     }
 
-    @PostMapping(path = "/saveWithAttachment")
-    public ResponseModel saveWithAttachment(@RequestBody ContactDto contactDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+
+    @PutMapping(path = "/update")
+    public ResponseModel update(@RequestBody PrivilegeDto privilegeDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
-            log.info("create contact");
+            log.info("update Privilege");
             responseModel.clear();
-            responseModel.setContent(contactService.createContactWithAttachment(contactDto, httpServletRequest));
+            responseModel.setContent(privilegeService.updatePrivilege(privilegeDto, httpServletRequest));
             responseModel.setResult(success);
-            responseModel.setStatus(httpServletResponse.getStatus());
         } catch (AccessDeniedException accessDeniedException) {
             responseModel.setError(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
             responseModel.setResult(fail);
@@ -127,42 +126,30 @@ public class ContactController {
         } catch (DataIntegrityViolationException dataIntegrityViolationException) {
             responseModel.setSystemError(dataIntegrityViolationException.getMessage());
             responseModel.setError(dataIntegrityViolationException.getMessage());
-            responseModel.setResult(fail);
             responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.setResult(fail);
         } catch (Exception e) {
             responseModel.setError(e.getMessage());
-            responseModel.setResult(fail);
             responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.setResult(fail);
         }
-        return responseModel;
-    }
-
-    @PutMapping("/update")
-    public ResponseModel update(@RequestBody ContactDto contactDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ContactException {
-        log.info("update contact");
-        responseModel.clear();
-        responseModel.setContent(contactService.updateContact(contactDto, httpServletRequest));
-        responseModel.setResult(success);
-        responseModel.setRecordCount(1);
-        responseModel.setStatus(httpServletResponse.getStatus());
         return responseModel;
     }
 
     @DeleteMapping("/delete/{id}")
     public ResponseModel delete(@PathVariable("id") Long id, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
-            log.info("delete contact");
+            log.info("delete Privilege");
             responseModel.clear();
-            contactService.deleteContact(id);
+            privilegeService.deletePrivilege(id);
+            responseModel.clear();
             responseModel.setResult(success);
-            responseModel.setStatus(httpServletResponse.getStatus());
         } catch (Exception e) {
             responseModel.setError(e.getMessage());
-            responseModel.setResult(fail);
             responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.setResult(fail);
         }
         return responseModel;
     }
-
 
 }

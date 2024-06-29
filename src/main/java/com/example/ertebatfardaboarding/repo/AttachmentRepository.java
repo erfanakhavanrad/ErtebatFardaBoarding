@@ -10,6 +10,4 @@ import org.springframework.stereotype.Repository;
 public interface AttachmentRepository extends JpaRepository<Attachment, Long> {
     Attachment findByToken(String token);
       Page<Attachment> findByUsername(String username, Pageable pageable);
-//    org.springframework.data.domain.Page<Attachment> findAllByParentId(@Param("parentId") Long parentId, Pageable pageable);
-//    @Param("parentId") Long parentId,
 }

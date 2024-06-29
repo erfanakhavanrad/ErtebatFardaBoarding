@@ -1,12 +1,12 @@
 package com.example.ertebatfardaboarding.service.impl;
 
 import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
+import com.example.ertebatfardaboarding.domain.Attachment;
+import com.example.ertebatfardaboarding.domain.AttachmentDto;
 import com.example.ertebatfardaboarding.domain.mapper.AttachmentMapper;
 import com.example.ertebatfardaboarding.exception.AttachmentException;
 import com.example.ertebatfardaboarding.repo.AttachmentRepository;
 import com.example.ertebatfardaboarding.service.FileStorageService;
-import com.example.ertebatfardaboarding.domain.Attachment;
-import com.example.ertebatfardaboarding.domain.AttachmentDto;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +71,6 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     public AttachmentDto storeFile(MultipartFile file, Authentication authentication) throws IOException {
-//        String token = UUID.randomUUID().toString();
         String username = authentication.getName();
 
         String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));

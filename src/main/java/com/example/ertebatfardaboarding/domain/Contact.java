@@ -22,7 +22,7 @@ public class Contact implements Serializable {
     @OneToMany(cascade = CascadeType.ALL)
     private List<ContactDetail> contactDetailList;
 
-//    @OneToOne(cascade = CascadeType.ALL)
+    //    @OneToOne(cascade = CascadeType.ALL)
 //    @JoinColumn(name = "attachment_id", referencedColumnName = "id")
 //    private Attachment attachment;
     @Column

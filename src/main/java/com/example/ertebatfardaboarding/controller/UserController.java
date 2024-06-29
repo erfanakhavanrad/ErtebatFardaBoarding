@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
@@ -41,6 +42,10 @@ public class UserController {
     int fail;
 
     @GetMapping("/getAll")
+//    @PreAuthorize("hasPermission(#user, 'READ')")
+//    @PreAuthorize("hasRole('NORMAL_USER')")
+//    @PreAuthorize("hasRole('RULE_NORMAL_USER')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseModel getAll(@RequestParam Integer pageNo, Integer perPage, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
             responseModel.clear();
@@ -72,7 +77,7 @@ public class UserController {
     }
 
     @PostMapping(path = "/verify")
-    public ResponseModel verify(@RequestBody UserDto userDto, HttpServletRequest httpServletRequest) throws NoSuchAlgorithmException {
+    public ResponseModel verify(@RequestBody UserDto userDto, HttpServletRequest httpServletRequest) throws Exception {
         log.info("verifying user with ip: {}", ErtebatFardaBoardingApplication.getClientIP(httpServletRequest));
         responseModel.clear();
         responseModel.setContent(userService.verifyUser(userDto, httpServletRequest));
@@ -84,6 +89,33 @@ public class UserController {
         log.info("login in user with ip: {}", ErtebatFardaBoardingApplication.getClientIP(httpServletRequest));
         responseModel.clear();
         responseModel.setContent(userService.loginUser(userDto, httpServletRequest));
+        return responseModel;
+    }
+
+    @DeleteMapping("/delete/{id}")
+//    @PreAuthorize("hasAnyAuthority('ROLE_NORMAL_USER')")
+//    @PostAuthorize("hasAnyAuthority('ROLE_NORMAL_USER')")
+    public ResponseModel delete(@PathVariable("id") Long id, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        try {
+            log.info("delete user");
+            responseModel.clear();
+            userService.deleteUser(id);
+            responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.clear();
+            responseModel.setResult(success);
+        } catch (org.springframework.security.access.AccessDeniedException accessDeniedException) {
+            responseModel.setError(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
+            responseModel.setResult(fail);
+            responseModel.setSystemError(accessDeniedException.getMessage());
+            responseModel.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        } catch (Exception e) {
+            responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.setResult(fail);
+            responseModel.setError(e.getMessage());
+        } finally {
+            responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.setResult(fail);
+        }
         return responseModel;
     }
 

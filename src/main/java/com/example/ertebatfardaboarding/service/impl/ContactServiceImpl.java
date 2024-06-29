@@ -66,17 +66,6 @@ public class ContactServiceImpl implements ContactService {
         Contact savedContact = contactRepository.save(contact);
         ContactDto contactDto1 = ContactMapper.contactMapper.contactToContactDto(savedContact);
         return contactDto1;
-
-//        for (int i = 0; i < contactDto.getContactDetailList().size(); i++) {
-//            ContactDetailDto details = contactDto.getContactDetailList().get(i);
-//            contactDto.getContactDetailList().set(i, details);
-//        }
-//        Contact contact = ContactMapper.contactMapper.contactDtoToContact(contactDto);
-//        Contact savedContact = contactRepository.save(contact);
-//        ContactDto contactDto1 = ContactMapper.contactMapper.contactToContactDto(savedContact);
-//        Attachment attachment = AttachmentMapper.attachmentMapper.attachmentDtoToAttachment(attachmentDto);
-//        contactDto1.setAttachment(attachment);
-//        return contactDto1;
     }
 
     @SneakyThrows
@@ -96,18 +85,6 @@ public class ContactServiceImpl implements ContactService {
         }
         return contactRepository.save(updated);
     }
-
-//    @Override
-//    public Contact updateContact(ContactDto contactDto, HttpServletRequest httpServletRequest) throws Exception {
-//        Contact oldContact = getContactById(contactDto.getId());
-//        Contact newContact = ContactMapper.contactMapper.contactDtoToContact(contactDto);
-//        responseModel.clear();
-//        Contact updated = (Contact) responseModel.merge(oldContact, newContact);
-//        if (newContact.getContactDetailList() != null && !newContact.getContactDetailList().isEmpty()) {
-//            updated.setContactDetailList(newContact.getContactDetailList());
-//        }
-//        return contactRepository.save(updated);
-//    }
 
     @Override
     public Page<Contact> getContacts(Integer pageNo, Integer perPage) throws Exception {

@@ -9,9 +9,11 @@ import org.springframework.data.domain.Page;
 public interface UserService {
     UserDto registerUser(UserDto userDto, HttpServletRequest httpServletRequest) throws UserException;
 
-    UserDto verifyUser(UserDto userDto, HttpServletRequest httpServletRequest) throws UserException;
+    UserDto verifyUser(UserDto userDto, HttpServletRequest httpServletRequest) throws Exception;
 
     Page<User> getUsers(Integer pageNo, Integer perPage) throws Exception;
 
     UserDto loginUser(UserDto userDto, HttpServletRequest httpServletRequest);
+
+    void deleteUser(Long id) throws Exception;
 }
