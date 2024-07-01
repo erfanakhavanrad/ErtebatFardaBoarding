@@ -14,6 +14,7 @@ import com.example.ertebatfardaboarding.security.SecurityService;
 import com.example.ertebatfardaboarding.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -28,6 +29,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
     @Autowired
     UserRepository userRepository;
@@ -74,13 +76,15 @@ public class UserServiceImpl implements UserService {
             throw new UserException(faMessageSource.getMessage("ALREADY_EXISTS", null, Locale.ENGLISH));
         userDto.setPassword(passwordGenerator(userDto));
         userDto.setActivationCode(passwordGenerator());
-        redisTemplate.opsForValue().set(userDto.getEmail(), userDto, 50, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(userDto.getEmail(), userDto, 500, TimeUnit.SECONDS);
+        log.info("User registered with email: {}", userDto.getEmail());
         return userDto;
     }
 
     @Override
     public UserDto verifyUser(UserDto userDto, HttpServletRequest httpServletRequest) throws Exception {
         UserDto thisUserDto = (UserDto) redisTemplate.opsForValue().get(userDto.getEmail());
+        log.info("Verifying user with email: {} - Found: {}", userDto.getEmail(), thisUserDto != null);
         if (thisUserDto == null || !Objects.equals(thisUserDto.getActivationCode(), userDto.getActivationCode()) || thisUserDto.getIsActive())
             throw new UserException(faMessageSource.getMessage("INVALID_OTP", null, Locale.ENGLISH));
         else {

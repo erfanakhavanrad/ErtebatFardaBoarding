@@ -65,14 +65,18 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         http.csrf(AbstractHttpConfigurer::disable);
         http.sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         http.authorizeHttpRequests(authorizeReq -> authorizeReq
-                .requestMatchers(HttpMethod.GET, "/user/getAll").permitAll()
+//                .requestMatchers(HttpMethod.GET, "/user/getAll").permitAll()
                 .requestMatchers(HttpMethod.POST, "/user/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/user/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/user/verify").permitAll()
                 .requestMatchers(HttpMethod.GET, "/attachment/getAll").permitAll()
                 .requestMatchers(HttpMethod.GET, "/attachment/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/attachment/allUserPhotos").permitAll()
-                .requestMatchers(HttpMethod.GET, "/attachment/getAllUserPhotosAsPhoto").permitAll()
+                .requestMatchers(HttpMethod.POST, "/attachment/allUserPhotos").permitAll()
+                .requestMatchers(HttpMethod.GET, "/role/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/role/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/privilege/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/privilege/*").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN") // Require ADMIN role for /admin/**

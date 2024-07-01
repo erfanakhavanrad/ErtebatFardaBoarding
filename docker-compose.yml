@@ -15,17 +15,18 @@ services:
       - oracle-data:/u01/app/oracle
     networks:
       - my_network
-#    healthcheck:
-#     test: [ "CMD-SHELL", "echo 'SELECT 1 FROM DUAL' | sqlplus -S SYSTEM/Secure@Pwa9//localhost:1521/XE" ]
-#     interval: 10s
-#     timeout: 5s
-#     retries: 15
 
   redis:
+    build:
+      context: .
+      dockerfile: C:\Users\e.akhavanrad\IdeaProjects\ErtebatFardaBoarding\src\main\resources\Dockerfile
     image: redis:6.0
     container_name: redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
     networks:
       - my_network
 
@@ -56,3 +57,4 @@ networks:
 
 volumes:
   oracle-data:
+  redis-data:
