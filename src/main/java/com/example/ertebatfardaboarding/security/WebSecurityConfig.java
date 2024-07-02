@@ -79,8 +79,8 @@ public class WebSecurityConfig implements WebMvcConfigurer {
                 .requestMatchers(HttpMethod.GET, "/privilege/*").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
                 .permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN") // Require ADMIN role for /admin/**
-                .requestMatchers("/user/**").hasRole("USER")   // Require USER role for /user/**
+//                .requestMatchers("/admin/**").hasRole("ADMIN") // Require ADMIN role for /admin/**
+//                .requestMatchers("/user/**").hasRole("ADMIN")   // Require USER role for /user/**
                 .anyRequest().authenticated());
         http.addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class);
         http.httpBasic(Customizer.withDefaults());

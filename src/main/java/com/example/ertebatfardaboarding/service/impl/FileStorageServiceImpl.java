@@ -2,7 +2,7 @@ package com.example.ertebatfardaboarding.service.impl;
 
 import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
 import com.example.ertebatfardaboarding.domain.Attachment;
-import com.example.ertebatfardaboarding.domain.AttachmentDto;
+import com.example.ertebatfardaboarding.domain.dto.AttachmentDto;
 import com.example.ertebatfardaboarding.domain.mapper.AttachmentMapper;
 import com.example.ertebatfardaboarding.exception.AttachmentException;
 import com.example.ertebatfardaboarding.repo.AttachmentRepository;
@@ -143,6 +143,11 @@ public class FileStorageServiceImpl implements FileStorageService {
             byte[] byteArray = FileCopyUtils.copyToByteArray(inputStream);
             return byteArray;
         }
+    }
+
+    @Override
+    public void deletePhoto(Long id) throws Exception {
+        attachmentRepository.deleteById(id);
     }
 
 }

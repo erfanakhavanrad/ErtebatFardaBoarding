@@ -3,11 +3,13 @@ package com.example.ertebatfardaboarding.service.impl;
 import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
 import com.example.ertebatfardaboarding.domain.Contact;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
+import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.ContactDetailDto;
 import com.example.ertebatfardaboarding.domain.dto.ContactDto;
 import com.example.ertebatfardaboarding.domain.mapper.ContactMapper;
 import com.example.ertebatfardaboarding.exception.ContactException;
 import com.example.ertebatfardaboarding.repo.ContactRepository;
+import com.example.ertebatfardaboarding.repo.UserRepository;
 import com.example.ertebatfardaboarding.service.ContactService;
 import com.example.ertebatfardaboarding.service.FileStorageService;
 import com.example.ertebatfardaboarding.utils.Utils;
@@ -17,6 +19,7 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,9 @@ public class ContactServiceImpl implements ContactService {
     ContactRepository contactRepository;
 
     @Autowired
+    UserRepository userRepository;
+
+    @Autowired
     FileStorageService fileStorageService;
 
     @Autowired
@@ -39,16 +45,17 @@ public class ContactServiceImpl implements ContactService {
 
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
-    private Integer pageNo;
-    private Integer perPage;
 
     @Override
     public ContactDto createContact(ContactDto contactDto, HttpServletRequest httpServletRequest) throws Exception {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByEmail(currentUsername);
         for (int i = 0; i < contactDto.getContactDetailList().size(); i++) {
             ContactDetailDto details = contactDto.getContactDetailList().get(i);
             contactDto.getContactDetailList().set(i, details);
         }
         Contact contact = ContactMapper.contactMapper.contactDtoToContact(contactDto);
+        contact.setCreatedBy(currentUser);
         Contact savedContact = contactRepository.save(contact);
         ContactDto contactDto1 = ContactMapper.contactMapper.contactToContactDto(savedContact);
         return contactDto1;
@@ -57,12 +64,15 @@ public class ContactServiceImpl implements ContactService {
     @Override
     @Transactional
     public ContactDto createContactWithAttachment(ContactDto contactDto, HttpServletRequest httpServletRequest) throws Exception {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByEmail(currentUsername);
 
         for (int i = 0; i < contactDto.getContactDetailList().size(); i++) {
             ContactDetailDto details = contactDto.getContactDetailList().get(i);
             contactDto.getContactDetailList().set(i, details);
         }
         Contact contact = ContactMapper.contactMapper.contactDtoToContact(contactDto);
+        contact.setCreatedBy(currentUser);
         Contact savedContact = contactRepository.save(contact);
         ContactDto contactDto1 = ContactMapper.contactMapper.contactToContactDto(savedContact);
         return contactDto1;
@@ -88,9 +98,15 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public Page<Contact> getContacts(Integer pageNo, Integer perPage) throws Exception {
-        this.pageNo = pageNo;
-        this.perPage = perPage;
-        return contactRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByEmail(currentUsername);
+        Page<Contact> all;
+        if (currentUser.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
+            all = contactRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+        } else {
+            all = contactRepository.findAllByCreatedBy(currentUser, ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+        }
+        return all;
     }
 
     @Override

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,7 +46,9 @@ public class UserController {
 //    @PreAuthorize("hasPermission(#user, 'READ')")
 //    @PreAuthorize("hasRole('NORMAL_USER')")
 //    @PreAuthorize("hasRole('RULE_NORMAL_USER')")
-    @PreAuthorize("hasRole('USER')")
+//    @PostAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasAuthority('ATTACHMENT,CREATE')")
     public ResponseModel getAll(@RequestParam Integer pageNo, Integer perPage, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
             responseModel.clear();
@@ -93,8 +96,6 @@ public class UserController {
     }
 
     @DeleteMapping("/delete/{id}")
-//    @PreAuthorize("hasAnyAuthority('ROLE_NORMAL_USER')")
-//    @PostAuthorize("hasAnyAuthority('ROLE_NORMAL_USER')")
     public ResponseModel delete(@PathVariable("id") Long id, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
             log.info("delete user");

@@ -5,8 +5,6 @@ import com.example.ertebatfardaboarding.domain.dto.ContactDto;
 import com.example.ertebatfardaboarding.exception.ContactException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.multipart.MultipartFile;
 
 public interface ContactService {
     ContactDto createContact(ContactDto contactDto, HttpServletRequest httpServletRequest) throws Exception;

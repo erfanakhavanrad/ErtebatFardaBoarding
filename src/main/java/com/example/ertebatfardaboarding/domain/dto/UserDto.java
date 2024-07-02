@@ -1,6 +1,7 @@
 package com.example.ertebatfardaboarding.domain.dto;
 
 import com.example.ertebatfardaboarding.domain.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,6 +12,7 @@ public class UserDto implements Serializable {
     private Long id;
     private String name;
     private String email;
+    @JsonIgnore
     private String password;
     private String username;
     private Boolean isActive = false;

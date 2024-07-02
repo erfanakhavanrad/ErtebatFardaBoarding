@@ -1,8 +1,8 @@
 package com.example.ertebatfardaboarding.controller;
 
 import com.example.ertebatfardaboarding.domain.Attachment;
-import com.example.ertebatfardaboarding.domain.AttachmentDto;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
+import com.example.ertebatfardaboarding.domain.dto.AttachmentDto;
 import com.example.ertebatfardaboarding.service.FileStorageService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -122,6 +123,32 @@ public class AttachmentController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFileName()
                         + "\"")
                 .body(new ByteArrayResource(file.getFileData()));
+    }
+
+    @PreAuthorize("hasAuthority('ATTACHMENT,DELETE')")
+    @DeleteMapping("/delete/{id}")
+    public ResponseModel delete(@PathVariable("id") Long id, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        try {
+            log.info("delete attachment");
+            responseModel.clear();
+            fileStorageService.deletePhoto(id);
+            responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.clear();
+            responseModel.setResult(success);
+        } catch (org.springframework.security.access.AccessDeniedException accessDeniedException) {
+            responseModel.setError(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
+            responseModel.setResult(fail);
+            responseModel.setSystemError(accessDeniedException.getMessage());
+            responseModel.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        } catch (Exception e) {
+            responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.setResult(fail);
+            responseModel.setError(e.getMessage());
+        } finally {
+            responseModel.setStatus(httpServletResponse.getStatus());
+            responseModel.setResult(fail);
+        }
+        return responseModel;
     }
 
 }

@@ -1,5 +1,6 @@
 package com.example.ertebatfardaboarding.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -18,14 +19,14 @@ public class Contact implements Serializable {
     private String name;
     @Column
     private String email;
-    //    @OneToMany(fetch = FetchType.EAGER, mappedBy = "contact", cascade = CascadeType.ALL)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @JsonIgnore
+    private User createdBy;
+
     @OneToMany(cascade = CascadeType.ALL)
     private List<ContactDetail> contactDetailList;
-
-    //    @OneToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "attachment_id", referencedColumnName = "id")
-//    private Attachment attachment;
     @Column
     private Long attachmentId;
-
 }

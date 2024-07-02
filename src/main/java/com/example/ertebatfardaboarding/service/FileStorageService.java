@@ -1,7 +1,7 @@
 package com.example.ertebatfardaboarding.service;
 
 import com.example.ertebatfardaboarding.domain.Attachment;
-import com.example.ertebatfardaboarding.domain.AttachmentDto;
+import com.example.ertebatfardaboarding.domain.dto.AttachmentDto;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.Authentication;
@@ -22,4 +22,6 @@ public interface FileStorageService {
     Attachment getAllUserPhotos(Long photoId, String fileToken, HttpServletResponse httpServletResponse) throws Exception;
 
     AttachmentDto getAllUserPhotosAsPhoto(Long photoId, String fileToken, HttpServletResponse httpServletResponse) throws Exception;
+
+    void deletePhoto(Long id) throws Exception;
 }

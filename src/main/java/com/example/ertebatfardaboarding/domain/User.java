@@ -1,5 +1,6 @@
 package com.example.ertebatfardaboarding.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -19,11 +20,15 @@ public class User implements Serializable {
     @Column(unique = true)
     private String email;
     @Column
+    @JsonIgnore
     private String password;
     @Column
     private Boolean isAuthorizationChanged = false;
     @Column
     private Boolean isActive = false;
+
+    @OneToMany(mappedBy = "createdBy")
+    private List<Contact> contacts;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JoinTable(name = "role_user",
