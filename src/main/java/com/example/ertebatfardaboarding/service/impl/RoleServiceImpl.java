@@ -4,7 +4,9 @@ import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
 import com.example.ertebatfardaboarding.domain.Privilege;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.Role;
+import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.RoleDto;
+import com.example.ertebatfardaboarding.domain.dto.UserDto;
 import com.example.ertebatfardaboarding.domain.mapper.RoleMapper;
 import com.example.ertebatfardaboarding.repo.PrivilegeRepository;
 import com.example.ertebatfardaboarding.repo.RoleRepository;
@@ -15,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -81,7 +84,24 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    public List<Role> getRolesBySearch(RoleDto roleDto) {
+        Specification<Role> specification = Specification.where(null);
+
+        if (roleDto.getName() != null) {
+            specification = hasName(roleDto.getName());
+        }
+        return roleRepository.findAll(specification);
+    }
+
+    @Override
     public void deleteRole(Long id) {
         roleRepository.deleteById(id);
     }
+
+
+    private static Specification<Role> hasName(String name) {
+        return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("name")),
+                "%" + name.toLowerCase() + "%"));
+    }
+
 }

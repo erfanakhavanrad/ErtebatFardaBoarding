@@ -2,7 +2,9 @@ package com.example.ertebatfardaboarding.controller;
 
 import com.example.ertebatfardaboarding.domain.Contact;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
+import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.ContactDto;
+import com.example.ertebatfardaboarding.domain.dto.UserDto;
 import com.example.ertebatfardaboarding.exception.ContactException;
 import com.example.ertebatfardaboarding.service.ContactService;
 import jakarta.annotation.Resource;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 import java.util.Locale;
 
 @RestController
@@ -85,6 +88,23 @@ public class ContactController {
         return responseModel;
     }
 
+    @GetMapping("/searchContact")
+    public ResponseModel searchContact(@RequestBody ContactDto contactDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        try {
+            responseModel.clear();
+            List<Contact> contacts = contactService.getContactsBySearch(contactDto);
+            responseModel.setContents(contacts);
+            responseModel.setResult(success);
+            responseModel.setRecordCount((int) contacts.size());
+            responseModel.setStatus(httpServletResponse.getStatus());
+        } catch (Exception e) {
+            responseModel.setError(e.getMessage());
+            responseModel.setResult(fail);
+            responseModel.setStatus(httpServletResponse.getStatus());
+        }
+        return responseModel;
+    }
+
     @PostMapping(path = "/save")
     public ResponseModel save(@RequestBody ContactDto contactDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
@@ -141,7 +161,8 @@ public class ContactController {
     public ResponseModel update(@RequestBody ContactDto contactDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws ContactException {
         log.info("update contact");
         responseModel.clear();
-        responseModel.setContent(contactService.updateContact(contactDto, httpServletRequest));
+        responseModel.setContent(contactService.updateContactMapStruct(contactDto, httpServletRequest));
+//        responseModel.setContent(contactService.updateContact(contactDto, httpServletRequest));
         responseModel.setResult(success);
         responseModel.setRecordCount(1);
         responseModel.setStatus(httpServletResponse.getStatus());

@@ -71,6 +71,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> getUsersBySearch(UserDto userDto) {
+        Specification<User> specification = Specification.where(null);
+
+        if (userDto.getName() != null) {
+            specification = hasName(userDto.getName());
+        }
+
+        if (userDto.getEmail() != null) {
+            specification = hasEmail(userDto.getEmail());
+        }
+        return userRepository.findAll(specification);
+    }
+
+    private static Specification<User> hasName(String name) {
+        return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("name")),
+                "%" + name.toLowerCase() + "%"));
+    }
+
+    private static Specification<User> hasEmail(String email) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("email")),
+                "%" + email.toLowerCase() + "%");
+    }
+
+    @Override
     public UserDto registerUser(UserDto userDto, HttpServletRequest httpServletRequest) throws UserException {
         if (!getUsers(userDto).isEmpty())
             throw new UserException(faMessageSource.getMessage("ALREADY_EXISTS", null, Locale.ENGLISH));

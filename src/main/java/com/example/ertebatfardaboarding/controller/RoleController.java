@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Locale;
 
 @RestController
@@ -87,6 +88,23 @@ public class RoleController {
         } catch (Exception e) {
             responseModel.setResult(fail);
             responseModel.setError(e.getMessage());
+            responseModel.setStatus(httpServletResponse.getStatus());
+        }
+        return responseModel;
+    }
+
+    @GetMapping("/searchRole")
+    public ResponseModel searchRole(@RequestBody RoleDto roleDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+        try {
+            responseModel.clear();
+            List<Role> roles = roleService.getRolesBySearch(roleDto);
+            responseModel.setContents(roles);
+            responseModel.setResult(success);
+            responseModel.setRecordCount((int) roles.size());
+            responseModel.setStatus(httpServletResponse.getStatus());
+        } catch (Exception e) {
+            responseModel.setError(e.getMessage());
+            responseModel.setResult(fail);
             responseModel.setStatus(httpServletResponse.getStatus());
         }
         return responseModel;

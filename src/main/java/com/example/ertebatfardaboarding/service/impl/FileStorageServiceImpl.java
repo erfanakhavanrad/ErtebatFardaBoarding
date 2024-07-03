@@ -118,7 +118,9 @@ public class FileStorageServiceImpl implements FileStorageService {
     public Attachment getAllUserPhotos(Long photoId, String fileToken, HttpServletResponse httpServletResponse) throws Exception {
         UserDetails userDetails = (UserDetails) redisTemplate.opsForValue().get(fileToken);
         Attachment attachmentById = getAttachmentById(photoId);
-        if (userDetails == null || attachmentById == null)
+        if (userDetails == null)
+            throw new AttachmentException(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
+        if (attachmentById == null)
             throw new AttachmentException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
         Path targetLocation = this.fileStorageLocation.resolve(attachmentById.getFileName());
         attachmentById.setAccessUrl(targetLocation.toString());

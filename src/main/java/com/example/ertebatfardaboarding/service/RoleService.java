@@ -5,10 +5,14 @@ import com.example.ertebatfardaboarding.domain.dto.RoleDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 public interface RoleService {
     Page<Role> getRoles(Integer pageNo, Integer perPage) throws Exception;
 
     Role getRoleById(Long id) throws Exception;
+
+    List<Role> getRolesBySearch(RoleDto roleDto);
 
     Role getRoleByName(String name) throws Exception;
 

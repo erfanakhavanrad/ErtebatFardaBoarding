@@ -8,4 +8,5 @@ public class GlobalConstants {
     public final static int REFRESH_TOKEN_EXPIRATION = 57600000; // in minutes, equals to 30 days
     public final static String ALGORITHM ="SHA-256";
     public final static String CLAIM_NAME = "role";
+    public final static String ADMIN_NAME = "ADMIN";
 }
