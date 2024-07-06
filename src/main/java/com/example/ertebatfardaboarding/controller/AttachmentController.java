@@ -3,6 +3,7 @@ package com.example.ertebatfardaboarding.controller;
 import com.example.ertebatfardaboarding.domain.Attachment;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.dto.AttachmentDto;
+import com.example.ertebatfardaboarding.domain.responseDto.AttachmentResponseDto;
 import com.example.ertebatfardaboarding.service.FileStorageService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,7 +51,7 @@ public class AttachmentController {
         try {
             responseModel.clear();
             log.info("get all attachments");
-            Page<Attachment> attachments = fileStorageService.getAttachments(pageNo, perPage);
+            Page<AttachmentResponseDto> attachments = fileStorageService.getAttachments(pageNo, perPage);
             responseModel.setContents(attachments.getContent());
             responseModel.setResult(success);
             responseModel.setRecordCount((int) attachments.getTotalElements());
@@ -94,7 +95,7 @@ public class AttachmentController {
     @PostMapping("/uploadPhoto")
     public ResponseModel uploadPhoto(@RequestParam("File") MultipartFile file, Authentication authentication) throws IOException {
         responseModel.clear();
-        AttachmentDto attachmentDto = fileStorageService.storeFile(file, authentication);
+        AttachmentResponseDto attachmentDto = fileStorageService.storeFile(file, authentication);
         responseModel.setContent(attachmentDto);
         return responseModel;
     }
@@ -102,7 +103,7 @@ public class AttachmentController {
     @GetMapping("/allUserPhotos")
     public ResponseModel getAllUserPhotos(@RequestParam Long photoId, @RequestParam String fileToken, HttpServletResponse httpServletResponse) throws Exception {
         responseModel.clear();
-        Attachment file = fileStorageService.getAllUserPhotos(photoId, fileToken, httpServletResponse);
+        AttachmentResponseDto file = fileStorageService.getAllUserPhotos(photoId, fileToken, httpServletResponse);
         responseModel.setContent(file);
         responseModel.setRecordCount(1);
         responseModel.setResult(success);
@@ -113,7 +114,7 @@ public class AttachmentController {
     @GetMapping("/getAllUserPhotosAsPhoto")
     public ResponseEntity<org.springframework.core.io.Resource> getAllUserPhotosAsPhoto(@RequestParam Long photoId, @RequestParam String fileToken, HttpServletResponse httpServletResponse) throws Exception {
         responseModel.clear();
-        AttachmentDto file = fileStorageService.getAllUserPhotosAsPhoto(photoId, fileToken, httpServletResponse);
+        AttachmentResponseDto file = fileStorageService.getAllUserPhotosAsPhoto(photoId, fileToken, httpServletResponse);
         responseModel.setContent(file);
         responseModel.setRecordCount(1);
         responseModel.setResult(success);

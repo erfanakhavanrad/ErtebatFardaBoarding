@@ -5,6 +5,7 @@ import com.example.ertebatfardaboarding.domain.Privilege;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.dto.PrivilegeDto;
 import com.example.ertebatfardaboarding.domain.mapper.PrivilegeMapper;
+import com.example.ertebatfardaboarding.domain.responseDto.PrivilegeResponseDto;
 import com.example.ertebatfardaboarding.repo.PrivilegeRepository;
 import com.example.ertebatfardaboarding.service.PrivilegeService;
 import jakarta.annotation.Resource;
@@ -21,6 +22,9 @@ public class PrivilegeServiceImpl implements PrivilegeService {
     @Autowired
     PrivilegeRepository privilegeRepository;
 
+    @Autowired
+    PrivilegeMapper privilegeMapper;
+
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
 
@@ -28,34 +32,44 @@ public class PrivilegeServiceImpl implements PrivilegeService {
     ResponseModel responseModel;
 
     @Override
-    public Page<Privilege> getPrivileges(Integer pageNo, Integer perPage) {
-        return privilegeRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+    public Page<PrivilegeResponseDto> getPrivileges(Integer pageNo, Integer perPage) {
+        Page<Privilege> all = privilegeRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+        return all.map(privilegeMapper::privilegeToPrivilegeResponseDto);
     }
 
     @Override
-    public Privilege getPrivilegeById(Long id) throws Exception {
-        return privilegeRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("PRIVILEGE_NOT_FOUND", null, Locale.ENGLISH)));
+    public PrivilegeResponseDto getPrivilegeById(Long id) throws Exception {
+        Privilege privilege = privilegeRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("PRIVILEGE_NOT_FOUND", null, Locale.ENGLISH)));
+        return privilegeMapper.privilegeToPrivilegeResponseDto(privilege);
     }
 
     @Override
-    public Privilege createPrivilege(PrivilegeDto privilegeDto, HttpServletRequest httpServletRequest) {
+    public PrivilegeResponseDto createPrivilege(PrivilegeDto privilegeDto, HttpServletRequest httpServletRequest) {
         Privilege privilege = PrivilegeMapper.privilegeMapper.privilegeDtoToPrivilege(privilegeDto);
-        return privilegeRepository.save(privilege);
+        Privilege saved = privilegeRepository.save(privilege);
+        return privilegeMapper.privilegeToPrivilegeResponseDto(saved);
     }
 
     @Override
-    public Privilege updatePrivilege(PrivilegeDto privilegeDto, HttpServletRequest httpServletRequest) throws Exception {
+    public PrivilegeResponseDto updatePrivilege(PrivilegeDto privilegeDto, HttpServletRequest httpServletRequest) throws Exception {
 
-        Privilege oldPrivilege = getPrivilegeById(privilegeDto.getId());
+        Privilege oldPrivilege = getPrivilegeByIdBase(privilegeDto.getId());
         Privilege newPrivilege = PrivilegeMapper.privilegeMapper.privilegeDtoToPrivilege(privilegeDto);
 
         responseModel.clear();
         Privilege updated = (Privilege) responseModel.merge(oldPrivilege, newPrivilege);
-        return privilegeRepository.save(updated);
+        Privilege save = privilegeRepository.save(updated);
+        return privilegeMapper.privilegeToPrivilegeResponseDto(save);
     }
 
     @Override
     public void deletePrivilege(Long id) {
         privilegeRepository.deleteById(id);
     }
+
+
+    private Privilege getPrivilegeByIdBase(Long id) throws Exception {
+        return privilegeRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("PRIVILEGE_NOT_FOUND", null, Locale.ENGLISH)));
+    }
+
 }

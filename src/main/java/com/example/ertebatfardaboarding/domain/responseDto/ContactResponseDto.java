@@ -1,11 +1,11 @@
-package com.example.ertebatfardaboarding.domain.dto;
+package com.example.ertebatfardaboarding.domain.responseDto;
 
+import com.example.ertebatfardaboarding.domain.dto.ContactDetailDto;
 import lombok.Data;
 
 import java.util.List;
-
 @Data
-public class ContactDto {
+public class ContactResponseDto {
     private Long id;
     private String contactID;
     private String name;

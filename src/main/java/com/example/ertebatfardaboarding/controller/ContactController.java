@@ -5,6 +5,7 @@ import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.ContactDto;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
+import com.example.ertebatfardaboarding.domain.responseDto.ContactResponseDto;
 import com.example.ertebatfardaboarding.exception.ContactException;
 import com.example.ertebatfardaboarding.service.ContactService;
 import jakarta.annotation.Resource;
@@ -48,7 +49,7 @@ public class ContactController {
         try {
             responseModel.clear();
             log.info("get all contacts");
-            Page<Contact> contacts = contactService.getContacts(pageNo, perPage);
+            Page<ContactResponseDto> contacts = contactService.getContacts(pageNo, perPage);
             responseModel.setContents(contacts.getContent());
             responseModel.setResult(success);
             responseModel.setRecordCount((int) contacts.getTotalElements());
@@ -92,7 +93,7 @@ public class ContactController {
     public ResponseModel searchContact(@RequestBody ContactDto contactDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
             responseModel.clear();
-            List<Contact> contacts = contactService.getContactsBySearch(contactDto);
+            List<ContactResponseDto> contacts = contactService.getContactsBySearch(contactDto);
             responseModel.setContents(contacts);
             responseModel.setResult(success);
             responseModel.setRecordCount((int) contacts.size());

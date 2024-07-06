@@ -4,6 +4,7 @@ import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
 import com.example.ertebatfardaboarding.domain.Attachment;
 import com.example.ertebatfardaboarding.domain.dto.AttachmentDto;
 import com.example.ertebatfardaboarding.domain.mapper.AttachmentMapper;
+import com.example.ertebatfardaboarding.domain.responseDto.AttachmentResponseDto;
 import com.example.ertebatfardaboarding.exception.AttachmentException;
 import com.example.ertebatfardaboarding.repo.AttachmentRepository;
 import com.example.ertebatfardaboarding.service.FileStorageService;
@@ -41,6 +42,9 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired
+    AttachmentMapper attachmentMapper;
+
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
 
@@ -50,12 +54,18 @@ public class FileStorageServiceImpl implements FileStorageService {
     String uploadDir;
 
     @Override
-    public Page<Attachment> getAttachments(Integer pageNo, Integer perPage) throws Exception {
-        return attachmentRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+    public Page<AttachmentResponseDto> getAttachments(Integer pageNo, Integer perPage) throws Exception {
+        Page<Attachment> all = attachmentRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+        return all.map(attachmentMapper::attachmentToAttachmentResponseDto);
     }
 
     @Override
-    public Attachment getAttachmentById(Long id) throws Exception {
+    public AttachmentResponseDto getAttachmentById(Long id) throws Exception {
+        Attachment attachment = attachmentRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
+        return attachmentMapper.attachmentToAttachmentResponseDto(attachment);
+    }
+
+    private Attachment getAttachmentByIdDto(Long id) throws Exception {
         return attachmentRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
     }
 
@@ -70,7 +80,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         }
     }
 
-    public AttachmentDto storeFile(MultipartFile file, Authentication authentication) throws IOException {
+    public AttachmentResponseDto storeFile(MultipartFile file, Authentication authentication) throws IOException {
         String username = authentication.getName();
 
         String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
@@ -93,7 +103,8 @@ public class FileStorageServiceImpl implements FileStorageService {
 
         Attachment savedAttachment = attachmentRepository.save(attachment);
         attachment.setAccessUrl(targetLocation.toString());
-        return AttachmentMapper.attachmentMapper.attachmentToAttachmentDto(savedAttachment);
+        AttachmentDto attachmentDto = AttachmentMapper.attachmentMapper.attachmentToAttachmentDto(savedAttachment);
+        return attachmentMapper.attachmentDtoToAttachmentResponseDto(attachmentDto);
     }
 
 
@@ -115,28 +126,28 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public Attachment getAllUserPhotos(Long photoId, String fileToken, HttpServletResponse httpServletResponse) throws Exception {
+    public AttachmentResponseDto getAllUserPhotos(Long photoId, String fileToken, HttpServletResponse httpServletResponse) throws Exception {
         UserDetails userDetails = (UserDetails) redisTemplate.opsForValue().get(fileToken);
-        Attachment attachmentById = getAttachmentById(photoId);
+        Attachment attachmentById = getAttachmentByIdDto(photoId);
         if (userDetails == null)
             throw new AttachmentException(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
         if (attachmentById == null)
             throw new AttachmentException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
         Path targetLocation = this.fileStorageLocation.resolve(attachmentById.getFileName());
         attachmentById.setAccessUrl(targetLocation.toString());
-        return attachmentById;
+        return attachmentMapper.attachmentToAttachmentResponseDto(attachmentById);
     }
 
     @Override
-    public AttachmentDto getAllUserPhotosAsPhoto(Long photoId, String fileToken, HttpServletResponse httpServletResponse) throws Exception {
+    public AttachmentResponseDto getAllUserPhotosAsPhoto(Long photoId, String fileToken, HttpServletResponse httpServletResponse) throws Exception {
         UserDetails userDetails = (UserDetails) redisTemplate.opsForValue().get(fileToken);
-        Attachment attachmentById = getAttachmentById(photoId);
+        Attachment attachmentById = getAttachmentByIdDto(photoId);
         if (userDetails == null || attachmentById == null)
             throw new AttachmentException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
         String accessUrl = attachmentById.getAccessUrl().replaceAll("(?<!http:)//", "/");
         AttachmentDto attachmentDto = AttachmentMapper.attachmentMapper.attachmentToAttachmentDto(attachmentById);
         attachmentDto.setFileData(readImageAsByteArray(accessUrl));
-        return attachmentDto;
+        return attachmentMapper.attachmentDtoToAttachmentResponseDto(attachmentDto);
     }
 
     public static byte[] readImageAsByteArray(String filePath) throws IOException {

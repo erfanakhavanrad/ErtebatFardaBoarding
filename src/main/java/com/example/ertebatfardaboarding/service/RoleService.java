@@ -2,23 +2,24 @@ package com.example.ertebatfardaboarding.service;
 
 import com.example.ertebatfardaboarding.domain.Role;
 import com.example.ertebatfardaboarding.domain.dto.RoleDto;
+import com.example.ertebatfardaboarding.domain.responseDto.RoleResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface RoleService {
-    Page<Role> getRoles(Integer pageNo, Integer perPage) throws Exception;
+    Page<RoleResponseDto> getRoles(Integer pageNo, Integer perPage) throws Exception;
 
-    Role getRoleById(Long id) throws Exception;
+    RoleResponseDto getRoleById(Long id) throws Exception;
 
-    List<Role> getRolesBySearch(RoleDto roleDto);
+    List<RoleResponseDto> getRolesBySearch(RoleDto roleDto);
 
-    Role getRoleByName(String name) throws Exception;
+    RoleResponseDto getRoleByName(String name) throws Exception;
 
-    Role createRole(RoleDto roleDto, HttpServletRequest httpServletRequest) throws Exception;
+    RoleResponseDto createRole(RoleDto roleDto, HttpServletRequest httpServletRequest) throws Exception;
 
-    Role updateRole(RoleDto roleDto, HttpServletRequest httpServletRequest) throws Exception;
+    RoleResponseDto updateRole(RoleDto roleDto, HttpServletRequest httpServletRequest) throws Exception;
 
     void deleteRole(Long id) throws Exception;
 }

@@ -6,6 +6,7 @@ import com.example.ertebatfardaboarding.domain.Role;
 import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
 import com.example.ertebatfardaboarding.domain.mapper.UserMapper;
+import com.example.ertebatfardaboarding.domain.responseDto.UserResponseDto;
 import com.example.ertebatfardaboarding.domain.specification.UserSpecification;
 import com.example.ertebatfardaboarding.exception.UserException;
 import com.example.ertebatfardaboarding.repo.RoleRepository;
@@ -21,6 +22,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 
 import java.security.MessageDigest;
@@ -46,6 +48,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired
+    UserMapper userMapper;
+
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
 
@@ -56,22 +61,11 @@ public class UserServiceImpl implements UserService {
     int fail;
     @Autowired
     private RoleRepository roleRepository;
-
-    public List<User> getUsers(UserDto userDto) {
-        Specification<User> specification = Specification.where(null);
-
-        if (userDto.getName() != null) {
-            specification = specification.and(UserSpecification.hasName(userDto.getName()));
-        }
-
-        if (userDto.getEmail() != null) {
-            specification = specification.and(UserSpecification.hasEmail(userDto.getEmail()));
-        }
-        return userRepository.findAll(specification);
-    }
+    @Autowired
+    private MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
 
     @Override
-    public List<User> getUsersBySearch(UserDto userDto) {
+    public List<UserResponseDto> getUsersBySearch(UserDto userDto) {
         Specification<User> specification = Specification.where(null);
 
         if (userDto.getName() != null) {
@@ -81,7 +75,8 @@ public class UserServiceImpl implements UserService {
         if (userDto.getEmail() != null) {
             specification = hasEmail(userDto.getEmail());
         }
-        return userRepository.findAll(specification);
+        List<User> all = userRepository.findAll(specification);
+        return userMapper.userListToUserResponseDtoList(all);
     }
 
     private static Specification<User> hasName(String name) {
@@ -95,18 +90,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto registerUser(UserDto userDto, HttpServletRequest httpServletRequest) throws UserException {
+    public UserResponseDto registerUser(UserDto userDto, HttpServletRequest httpServletRequest) throws UserException {
         if (!getUsers(userDto).isEmpty())
             throw new UserException(faMessageSource.getMessage("ALREADY_EXISTS", null, Locale.ENGLISH));
         userDto.setPassword(passwordGenerator(userDto));
         userDto.setActivationCode(passwordGenerator());
         redisTemplate.opsForValue().set(userDto.getEmail(), userDto, 500, TimeUnit.SECONDS);
         log.info("User registered with email: {}", userDto.getEmail());
-        return userDto;
+        return userMapper.userDtoToUserResponseDto(userDto);
     }
 
     @Override
-    public UserDto verifyUser(UserDto userDto, HttpServletRequest httpServletRequest) throws Exception {
+    public UserResponseDto verifyUser(UserDto userDto, HttpServletRequest httpServletRequest) throws Exception {
         UserDto thisUserDto = (UserDto) redisTemplate.opsForValue().get(userDto.getEmail());
         log.info("Verifying user with email: {} - Found: {}", userDto.getEmail(), thisUserDto != null);
         if (thisUserDto == null || !Objects.equals(thisUserDto.getActivationCode(), userDto.getActivationCode()) || thisUserDto.getIsActive())
@@ -119,7 +114,7 @@ public class UserServiceImpl implements UserService {
             thisUserDto.setRoles(roleList);
             User newUser = UserMapper.userMapper.userDtoToUser(thisUserDto);
             User savedUser = userRepository.save(newUser);
-            return UserMapper.userMapper.userToUserDto(savedUser);
+            return userMapper.userToUserResponseDto(savedUser);
         }
     }
 
@@ -133,7 +128,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto loginUser(UserDto userDto, HttpServletRequest httpServletRequest) {
+    public UserResponseDto loginUser(UserDto userDto, HttpServletRequest httpServletRequest) {
         UserDto userDtoTemp = userDto;
         userDtoTemp.setName(null);
         List<User> savedUser = getUsers(userDtoTemp);
@@ -150,12 +145,13 @@ public class UserServiceImpl implements UserService {
             responseModel.setContent(savedUser);
             responseModel.setResult(success);
         } else throw new UserException(faMessageSource.getMessage("INVALID_CREDENTIALS", null, Locale.ENGLISH));
-        return UserMapper.userMapper.userToUserDto(savedUser.get(0));
+        return userMapper.userToUserResponseDto(savedUser.get(0));
     }
 
     @Override
-    public Page<User> getUsers(Integer pageNo, Integer perPage) throws Exception {
-        return userRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+    public Page<UserResponseDto> getUsers(Integer pageNo, Integer perPage) throws Exception {
+        Page<User> all = userRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+        return all.map(userMapper::userToUserResponseDto);
     }
 
     private String passwordGenerator(UserDto userDto) {
@@ -187,5 +183,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long id) throws Exception {
         userRepository.deleteById(id);
+    }
+
+    private List<User> getUsers(UserDto userDto) {
+        Specification<User> specification = Specification.where(null);
+
+        if (userDto.getName() != null) {
+            specification = specification.and(UserSpecification.hasName(userDto.getName()));
+        }
+
+        if (userDto.getEmail() != null) {
+            specification = specification.and(UserSpecification.hasEmail(userDto.getEmail()));
+        }
+        return userRepository.findAll(specification);
     }
 }

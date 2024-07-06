@@ -3,6 +3,7 @@ package com.example.ertebatfardaboarding.controller;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.Role;
 import com.example.ertebatfardaboarding.domain.dto.RoleDto;
+import com.example.ertebatfardaboarding.domain.responseDto.RoleResponseDto;
 import com.example.ertebatfardaboarding.service.RoleService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,7 +44,7 @@ public class RoleController {
         try {
             log.info("Get all Roles");
             responseModel.clear();
-            Page<Role> roles = roleService.getRoles(pageNo, perPage);
+            Page<RoleResponseDto> roles = roleService.getRoles(pageNo, perPage);
             responseModel.setContents(roles.getContent());
             responseModel.setResult(success);
             responseModel.setRecordCount((int) roles.getTotalElements());
@@ -97,7 +98,7 @@ public class RoleController {
     public ResponseModel searchRole(@RequestBody RoleDto roleDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
             responseModel.clear();
-            List<Role> roles = roleService.getRolesBySearch(roleDto);
+            List<RoleResponseDto> roles = roleService.getRolesBySearch(roleDto);
             responseModel.setContents(roles);
             responseModel.setResult(success);
             responseModel.setRecordCount((int) roles.size());
@@ -115,8 +116,8 @@ public class RoleController {
         try {
             log.info("Save Role");
             responseModel.clear();
-            final Role role = roleService.createRole(roleDto, httpServletRequest);
-            responseModel.setContent(role);
+            RoleResponseDto roleResponseDto = roleService.createRole(roleDto, httpServletRequest);
+            responseModel.setContent(roleResponseDto);
             responseModel.setResult(success);
             responseModel.setStatus(httpServletResponse.getStatus());
         } catch (AccessDeniedException accessDeniedException) {

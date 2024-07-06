@@ -3,6 +3,7 @@ package com.example.ertebatfardaboarding.controller;
 import com.example.ertebatfardaboarding.domain.Privilege;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.dto.PrivilegeDto;
+import com.example.ertebatfardaboarding.domain.responseDto.PrivilegeResponseDto;
 import com.example.ertebatfardaboarding.service.PrivilegeService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,7 +43,7 @@ public class PrivilegeController {
         try {
             log.info("getAll Privilege");
             responseModel.clear();
-            Page<Privilege> privileges = privilegeService.getPrivileges(pageNo, perPage);
+            Page<PrivilegeResponseDto> privileges = privilegeService.getPrivileges(pageNo, perPage);
             responseModel.setContents(privileges.getContent());
             responseModel.setResult(success);
             responseModel.setRecordCount((int) privileges.getTotalElements());

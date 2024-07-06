@@ -4,6 +4,7 @@ import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
+import com.example.ertebatfardaboarding.domain.responseDto.UserResponseDto;
 import com.example.ertebatfardaboarding.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,7 +49,7 @@ public class UserController {
         try {
             responseModel.clear();
             log.info("get all users");
-            Page<User> users = userService.getUsers(pageNo, perPage);
+            Page<UserResponseDto> users = userService.getUsers(pageNo, perPage);
             responseModel.setContents(users.getContent());
             responseModel.setResult(success);
             responseModel.setRecordCount((int) users.getTotalElements());
@@ -70,7 +71,7 @@ public class UserController {
     public ResponseModel searchUser(@RequestBody UserDto userDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
             responseModel.clear();
-            List<User> users = userService.getUsersBySearch(userDto);
+            List<UserResponseDto> users = userService.getUsersBySearch(userDto);
             responseModel.setContents(users);
             responseModel.setResult(success);
             responseModel.setRecordCount((int) users.size());

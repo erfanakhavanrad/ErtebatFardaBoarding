@@ -8,6 +8,7 @@ import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.RoleDto;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
 import com.example.ertebatfardaboarding.domain.mapper.RoleMapper;
+import com.example.ertebatfardaboarding.domain.responseDto.RoleResponseDto;
 import com.example.ertebatfardaboarding.repo.PrivilegeRepository;
 import com.example.ertebatfardaboarding.repo.RoleRepository;
 import com.example.ertebatfardaboarding.security.SecurityService;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.lang.invoke.WrongMethodTypeException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -35,28 +37,34 @@ public class RoleServiceImpl implements RoleService {
     private MessageSource faMessageSource;
 
     @Autowired
+    RoleMapper roleMapper;
+
+    @Autowired
     ResponseModel responseModel;
 
     @Autowired
     SecurityService securityService;
 
     @Override
-    public Page<Role> getRoles(Integer pageNo, Integer perPage) {
-        return roleRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+    public Page<RoleResponseDto> getRoles(Integer pageNo, Integer perPage) {
+        Page<Role> all = roleRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+        return all.map(roleMapper::roleToRoleResponseDto);
     }
 
     @Override
-    public Role getRoleById(Long id) throws Exception {
-        return roleRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("ROLE_NOT_FOUND", null, Locale.ENGLISH)));
+    public RoleResponseDto getRoleById(Long id) throws Exception {
+        Role foundRole = roleRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("ROLE_NOT_FOUND", null, Locale.ENGLISH)));
+        return roleMapper.roleToRoleResponseDto(foundRole);
     }
 
     @Override
-    public Role getRoleByName(String name) throws Exception {
-        return roleRepository.findAllByName(name);
+    public RoleResponseDto getRoleByName(String name) throws Exception {
+        Role allByName = roleRepository.findAllByName(name);
+        return roleMapper.roleToRoleResponseDto(allByName);
     }
 
     @Override
-    public Role createRole(RoleDto roleDto, HttpServletRequest httpServletRequest) {
+    public RoleResponseDto createRole(RoleDto roleDto, HttpServletRequest httpServletRequest) {
         Role role = RoleMapper.roleMapper.roleDtoToRole(roleDto);
         List<Long> ids = new ArrayList<>();
         for (Privilege privilege : roleDto.getPrivileges()) {
@@ -64,13 +72,14 @@ public class RoleServiceImpl implements RoleService {
         }
         List<Privilege> allById = privilegeRepository.findAllById(ids);
         role.setPrivileges(allById);
-        return roleRepository.save(role);
+        Role saved = roleRepository.save(role);
+        return roleMapper.roleToRoleResponseDto(saved);
     }
 
     @Override
-    public Role updateRole(RoleDto roleDto, HttpServletRequest httpServletRequest) throws Exception {
+    public RoleResponseDto updateRole(RoleDto roleDto, HttpServletRequest httpServletRequest) throws Exception {
 
-        Role oldRole = getRoleById(roleDto.getId());
+        Role oldRole = getRoleByIdRoleResponseDto(roleDto.getId());
         Role newRole = RoleMapper.roleMapper.roleDtoToRole(roleDto);
 
         responseModel.clear();
@@ -80,17 +89,19 @@ public class RoleServiceImpl implements RoleService {
             updated.setPrivileges(newRole.getPrivileges());
         }
 
-        return roleRepository.save(updated);
+        Role saved = roleRepository.save(updated);
+        return roleMapper.roleToRoleResponseDto(saved);
     }
 
     @Override
-    public List<Role> getRolesBySearch(RoleDto roleDto) {
+    public List<RoleResponseDto> getRolesBySearch(RoleDto roleDto) {
         Specification<Role> specification = Specification.where(null);
 
         if (roleDto.getName() != null) {
             specification = hasName(roleDto.getName());
         }
-        return roleRepository.findAll(specification);
+        List<Role> all = roleRepository.findAll(specification);
+        return roleMapper.roleListToRoleResponseDtoList(all);
     }
 
     @Override
@@ -102,6 +113,10 @@ public class RoleServiceImpl implements RoleService {
     private static Specification<Role> hasName(String name) {
         return ((root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("name")),
                 "%" + name.toLowerCase() + "%"));
+    }
+
+    private Role getRoleByIdRoleResponseDto(Long id) throws Exception {
+        return roleRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("ROLE_NOT_FOUND", null, Locale.ENGLISH)));
     }
 
 }

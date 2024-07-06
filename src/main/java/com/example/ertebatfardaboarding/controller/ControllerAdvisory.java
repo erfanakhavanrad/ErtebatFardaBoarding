@@ -27,15 +27,6 @@ public class ControllerAdvisory extends ResponseEntityExceptionHandler {
     @Value("${FAIL_RESULT}")
     int fail;
 
-//    @ExceptionHandler(ContactException.class)
-//    public ResponseEntity<Object> handleContactException(ContactException contactException, WebRequest webRequest) {
-//        Map<String, Object> map = new HashMap<>();
-////        map.put("timestamp", String.valueOf(System.currentTimeMillis()));
-//        map.put("timestamp", LocalDateTime.now());
-//        map.put("message", "contactException with message: " + contactException.getMessage());
-//        return new ResponseEntity<>(map, HttpStatus.NOT_FOUND);
-//    }
-
     @ResponseBody
     @ExceptionHandler(ContactException.class)
     public ResponseModel handleContactException(ContactException contactException, WebRequest webRequest) {
@@ -66,6 +57,5 @@ public class ControllerAdvisory extends ResponseEntityExceptionHandler {
         responseModel.setTimestamp(String.valueOf(LocalDateTime.now()));
         return responseModel;
     }
-
 
 }
