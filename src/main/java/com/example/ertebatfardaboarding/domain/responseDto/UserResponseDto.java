@@ -15,5 +15,5 @@ public class UserResponseDto {
     private String username;
     private Boolean isActive = false;
     private String activationCode;
-    private List<Role> roles;
+    private List<RoleResponseDto> roles;
 }

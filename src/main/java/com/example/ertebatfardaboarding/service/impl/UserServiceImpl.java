@@ -5,6 +5,7 @@ import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.Role;
 import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
+import com.example.ertebatfardaboarding.domain.mapper.RoleMapper;
 import com.example.ertebatfardaboarding.domain.mapper.UserMapper;
 import com.example.ertebatfardaboarding.domain.responseDto.UserResponseDto;
 import com.example.ertebatfardaboarding.domain.specification.UserSpecification;
@@ -111,7 +112,7 @@ public class UserServiceImpl implements UserService {
             Role role = fillInRoleAndPrivileges(thisUserDto.getRoles().get(0).getId());
             List<Role> roleList = new ArrayList<>();
             roleList.add(role);
-            thisUserDto.setRoles(roleList);
+            thisUserDto.setRoles(RoleMapper.roleMapper.roleListToRoleDtoList(roleList));
             User newUser = UserMapper.userMapper.userDtoToUser(thisUserDto);
             User savedUser = userRepository.save(newUser);
             return userMapper.userToUserResponseDto(savedUser);

@@ -8,5 +8,5 @@ import java.util.List;
 public class RoleResponseDto {
     private Long id;
     private String name;
-    private List<Privilege> privileges;
+    private List<PrivilegeResponseDto> privileges;
 }

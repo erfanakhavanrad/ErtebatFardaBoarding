@@ -1,6 +1,5 @@
 package com.example.ertebatfardaboarding.service;
 
-import com.example.ertebatfardaboarding.domain.Role;
 import com.example.ertebatfardaboarding.domain.dto.RoleDto;
 import com.example.ertebatfardaboarding.domain.responseDto.RoleResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +16,7 @@ public interface RoleService {
 
     RoleResponseDto getRoleByName(String name) throws Exception;
 
-    RoleResponseDto createRole(RoleDto roleDto, HttpServletRequest httpServletRequest) throws Exception;
+    RoleResponseDto createRole(String roleName, Long[] ids, HttpServletRequest httpServletRequest) throws Exception;
 
     RoleResponseDto updateRole(RoleDto roleDto, HttpServletRequest httpServletRequest) throws Exception;
 

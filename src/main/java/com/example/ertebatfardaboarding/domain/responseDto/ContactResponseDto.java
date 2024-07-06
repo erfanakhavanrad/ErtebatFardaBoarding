@@ -10,6 +10,6 @@ public class ContactResponseDto {
     private String contactID;
     private String name;
     private String email;
-    private List<ContactDetailDto> contactDetailList;
+    private List<ContactDetailResponseDto> contactDetailList;
     private Long attachmentId;
 }

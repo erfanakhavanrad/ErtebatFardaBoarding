@@ -1,7 +1,6 @@
 package com.example.ertebatfardaboarding.controller;
 
 import com.example.ertebatfardaboarding.domain.ResponseModel;
-import com.example.ertebatfardaboarding.domain.Role;
 import com.example.ertebatfardaboarding.domain.dto.RoleDto;
 import com.example.ertebatfardaboarding.domain.responseDto.RoleResponseDto;
 import com.example.ertebatfardaboarding.service.RoleService;
@@ -112,11 +111,11 @@ public class RoleController {
     }
 
     @PostMapping("/save")
-    public ResponseModel save(@RequestBody RoleDto roleDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
+    public ResponseModel save(@RequestParam String roleName, @RequestBody Long[] ids, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         try {
             log.info("Save Role");
             responseModel.clear();
-            RoleResponseDto roleResponseDto = roleService.createRole(roleDto, httpServletRequest);
+            RoleResponseDto roleResponseDto = roleService.createRole(roleName, ids, httpServletRequest);
             responseModel.setContent(roleResponseDto);
             responseModel.setResult(success);
             responseModel.setStatus(httpServletResponse.getStatus());

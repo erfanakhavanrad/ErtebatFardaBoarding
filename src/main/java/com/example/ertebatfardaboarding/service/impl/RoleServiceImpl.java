@@ -4,9 +4,7 @@ import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
 import com.example.ertebatfardaboarding.domain.Privilege;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.Role;
-import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.RoleDto;
-import com.example.ertebatfardaboarding.domain.dto.UserDto;
 import com.example.ertebatfardaboarding.domain.mapper.RoleMapper;
 import com.example.ertebatfardaboarding.domain.responseDto.RoleResponseDto;
 import com.example.ertebatfardaboarding.repo.PrivilegeRepository;
@@ -21,8 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.lang.invoke.WrongMethodTypeException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -64,14 +60,11 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public RoleResponseDto createRole(RoleDto roleDto, HttpServletRequest httpServletRequest) {
-        Role role = RoleMapper.roleMapper.roleDtoToRole(roleDto);
-        List<Long> ids = new ArrayList<>();
-        for (Privilege privilege : roleDto.getPrivileges()) {
-            ids.add(privilege.getId());
-        }
-        List<Privilege> allById = privilegeRepository.findAllById(ids);
+    public RoleResponseDto createRole(String roleName, Long[] ids, HttpServletRequest httpServletRequest) {
+        Role role = new Role();
+        List<Privilege> allById = privilegeRepository.findAllById(List.of(ids));
         role.setPrivileges(allById);
+        role.setName(roleName);
         Role saved = roleRepository.save(role);
         return roleMapper.roleToRoleResponseDto(saved);
     }

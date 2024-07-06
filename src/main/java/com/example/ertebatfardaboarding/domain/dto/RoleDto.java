@@ -1,6 +1,5 @@
 package com.example.ertebatfardaboarding.domain.dto;
 
-import com.example.ertebatfardaboarding.domain.Privilege;
 import lombok.Data;
 
 import java.util.List;
@@ -9,5 +8,5 @@ import java.util.List;
 public class RoleDto {
     private Long id;
     private String name;
-    private List<Privilege> privileges;
+    private List<PrivilegeDto> privileges;
 }

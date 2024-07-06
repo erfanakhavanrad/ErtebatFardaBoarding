@@ -7,5 +7,4 @@ public class ContactDetailResponseDto {
     private Long id;
     private String numberName;
     private String number;
-
 }

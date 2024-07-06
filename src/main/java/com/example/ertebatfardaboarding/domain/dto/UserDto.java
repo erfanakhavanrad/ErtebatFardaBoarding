@@ -1,6 +1,5 @@
 package com.example.ertebatfardaboarding.domain.dto;
 
-import com.example.ertebatfardaboarding.domain.Role;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
@@ -17,5 +16,5 @@ public class UserDto implements Serializable {
     private String username;
     private Boolean isActive = false;
     private String activationCode;
-    private List<Role> roles;
+    private List<RoleDto> roles;
 }
