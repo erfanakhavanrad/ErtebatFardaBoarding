@@ -1,17 +1,11 @@
 package com.example.ertebatfardaboarding.controller;
 
-import com.example.ertebatfardaboarding.domain.Attachment;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
-import com.example.ertebatfardaboarding.domain.dto.AttachmentDto;
 import com.example.ertebatfardaboarding.domain.responseDto.AttachmentResponseDto;
 import com.example.ertebatfardaboarding.service.FileStorageService;
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
@@ -23,8 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
-import java.util.Locale;
 
 @RestController
 @RequestMapping("attachment")
@@ -37,61 +29,30 @@ public class AttachmentController {
     @Autowired
     FileStorageService fileStorageService;
 
-    @Resource(name = "faMessageSource")
-    private MessageSource faMessageSource;
-
-    @Value("${SUCCESS_RESULT}")
-    int success;
-
-    @Value("${FAIL_RESULT}")
-    int fail;
-
+    @PreAuthorize("hasAuthority('ATTACHMENT,READ')")
     @GetMapping("/getAll")
-    public ResponseModel getAll(@RequestParam Integer pageNo, Integer perPage, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-        try {
-            responseModel.clear();
-            log.info("get all attachments");
-            Page<AttachmentResponseDto> attachments = fileStorageService.getAttachments(pageNo, perPage);
-            responseModel.setContents(attachments.getContent());
-            responseModel.setResult(success);
-            responseModel.setRecordCount((int) attachments.getTotalElements());
-            responseModel.setStatus(httpServletResponse.getStatus());
-        } catch (AccessDeniedException accessDeniedException) {
-            responseModel.setError(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
-            responseModel.setResult(fail);
-            responseModel.setSystemError(accessDeniedException.getMessage());
-            responseModel.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        } catch (Exception e) {
-            responseModel.setError(e.getMessage());
-            responseModel.setResult(fail);
-            responseModel.setStatus(httpServletResponse.getStatus());
-        }
+    public ResponseModel getAll(@RequestParam Integer pageNo, Integer perPage, HttpServletResponse httpServletResponse) throws Exception {
+        responseModel.clear();
+        log.info("get all attachments");
+        Page<AttachmentResponseDto> attachments = fileStorageService.getAttachments(pageNo, perPage);
+        responseModel.setContents(attachments.getContent());
+        responseModel.setRecordCount((int) attachments.getTotalElements());
+        responseModel.setStatus(httpServletResponse.getStatus());
         return responseModel;
     }
 
+    @PreAuthorize("hasAuthority('ATTACHMENT,READ')")
     @GetMapping("/getById")
-    public ResponseModel getById(@RequestParam Long id, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-        try {
-            log.info("get attachment by id");
-            responseModel.clear();
-            responseModel.setContent(fileStorageService.getAttachmentById(id));
-            responseModel.setRecordCount(1);
-            responseModel.setResult(success);
-            responseModel.setStatus(httpServletResponse.getStatus());
-        } catch (AccessDeniedException accessDeniedException) {
-            responseModel.setError(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
-            responseModel.setResult(fail);
-            responseModel.setSystemError(accessDeniedException.getMessage());
-            responseModel.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        } catch (Exception e) {
-            responseModel.setStatus(httpServletResponse.getStatus());
-            responseModel.setResult(fail);
-            responseModel.setError(e.getMessage());
-        }
+    public ResponseModel getById(@RequestParam Long id, HttpServletResponse httpServletResponse) throws Exception {
+        log.info("get attachment by id");
+        responseModel.clear();
+        responseModel.setContent(fileStorageService.getAttachmentById(id));
+        responseModel.setRecordCount(1);
+        responseModel.setStatus(httpServletResponse.getStatus());
         return responseModel;
     }
 
-
+    @PreAuthorize("hasAuthority('ATTACHMENT,CREATE')")
     @PostMapping("/uploadPhoto")
     public ResponseModel uploadPhoto(@RequestParam("File") MultipartFile file, Authentication authentication) throws IOException {
         responseModel.clear();
@@ -100,24 +61,24 @@ public class AttachmentController {
         return responseModel;
     }
 
+    @PreAuthorize("hasAuthority('ATTACHMENT,READ')")
     @GetMapping("/allUserPhotos")
     public ResponseModel getAllUserPhotos(@RequestParam Long photoId, @RequestParam String fileToken, HttpServletResponse httpServletResponse) throws Exception {
         responseModel.clear();
         AttachmentResponseDto file = fileStorageService.getAllUserPhotos(photoId, fileToken, httpServletResponse);
         responseModel.setContent(file);
         responseModel.setRecordCount(1);
-        responseModel.setResult(success);
         responseModel.setStatus(httpServletResponse.getStatus());
         return responseModel;
     }
 
+    @PreAuthorize("hasAuthority('ATTACHMENT,READ')")
     @GetMapping("/getAllUserPhotosAsPhoto")
     public ResponseEntity<org.springframework.core.io.Resource> getAllUserPhotosAsPhoto(@RequestParam Long photoId, @RequestParam String fileToken, HttpServletResponse httpServletResponse) throws Exception {
         responseModel.clear();
         AttachmentResponseDto file = fileStorageService.getAllUserPhotosAsPhoto(photoId, fileToken, httpServletResponse);
         responseModel.setContent(file);
         responseModel.setRecordCount(1);
-        responseModel.setResult(success);
         responseModel.setStatus(httpServletResponse.getStatus());
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(file.getFileType()))
@@ -128,27 +89,12 @@ public class AttachmentController {
 
     @PreAuthorize("hasAuthority('ATTACHMENT,DELETE')")
     @DeleteMapping("/delete/{id}")
-    public ResponseModel delete(@PathVariable("id") Long id, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-        try {
-            log.info("delete attachment");
-            responseModel.clear();
-            fileStorageService.deletePhoto(id);
-            responseModel.setStatus(httpServletResponse.getStatus());
-            responseModel.clear();
-            responseModel.setResult(success);
-        } catch (org.springframework.security.access.AccessDeniedException accessDeniedException) {
-            responseModel.setError(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
-            responseModel.setResult(fail);
-            responseModel.setSystemError(accessDeniedException.getMessage());
-            responseModel.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        } catch (Exception e) {
-            responseModel.setStatus(httpServletResponse.getStatus());
-            responseModel.setResult(fail);
-            responseModel.setError(e.getMessage());
-        } finally {
-            responseModel.setStatus(httpServletResponse.getStatus());
-            responseModel.setResult(fail);
-        }
+    public ResponseModel delete(@PathVariable("id") Long id, HttpServletResponse httpServletResponse) throws Exception {
+        log.info("delete attachment");
+        responseModel.clear();
+        fileStorageService.deletePhoto(id);
+        responseModel.setStatus(httpServletResponse.getStatus());
+        responseModel.clear();
         return responseModel;
     }
 

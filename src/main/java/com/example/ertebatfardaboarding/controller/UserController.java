@@ -2,85 +2,53 @@ package com.example.ertebatfardaboarding.controller;
 
 import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
-import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
 import com.example.ertebatfardaboarding.domain.responseDto.UserResponseDto;
 import com.example.ertebatfardaboarding.service.UserService;
-import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.AccessDeniedException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Locale;
 
 @RestController
 @RequestMapping("user")
 public class UserController {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     ResponseModel responseModel;
 
     @Autowired
     UserService userService;
 
-    @Resource(name = "faMessageSource")
-    private MessageSource faMessageSource;
-
-    @Value("${SUCCESS_RESULT}")
-    int success;
-
-    @Value("${FAIL_RESULT}")
-    int fail;
-
     @PreAuthorize("hasAuthority('USER,READ')")
     @GetMapping("/getAll")
-    public ResponseModel getAll(@RequestParam Integer pageNo, Integer perPage, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-        try {
-            responseModel.clear();
-            log.info("get all users");
-            Page<UserResponseDto> users = userService.getUsers(pageNo, perPage);
-            responseModel.setContents(users.getContent());
-            responseModel.setResult(success);
-            responseModel.setRecordCount((int) users.getTotalElements());
-            responseModel.setStatus(httpServletResponse.getStatus());
-        } catch (AccessDeniedException accessDeniedException) {
-            responseModel.setError(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
-            responseModel.setResult(fail);
-            responseModel.setSystemError(accessDeniedException.getMessage());
-            responseModel.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        } catch (Exception e) {
-            responseModel.setError(e.getMessage());
-            responseModel.setResult(fail);
-            responseModel.setStatus(httpServletResponse.getStatus());
-        }
+    public ResponseModel getAll(@RequestParam Integer pageNo, Integer perPage, HttpServletResponse httpServletResponse) throws Exception {
+        responseModel.clear();
+        log.info("get all users");
+        Page<UserResponseDto> users = userService.getUsers(pageNo, perPage);
+        responseModel.setContents(users.getContent());
+        responseModel.setRecordCount((int) users.getTotalElements());
+        responseModel.setStatus(httpServletResponse.getStatus());
         return responseModel;
     }
 
+    @PreAuthorize("hasAuthority('USER,READ')")
     @GetMapping("/searchUser")
-    public ResponseModel searchUser(@RequestBody UserDto userDto, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-        try {
-            responseModel.clear();
-            List<UserResponseDto> users = userService.getUsersBySearch(userDto);
-            responseModel.setContents(users);
-            responseModel.setResult(success);
-            responseModel.setRecordCount((int) users.size());
-            responseModel.setStatus(httpServletResponse.getStatus());
-        } catch (Exception e) {
-            responseModel.setError(e.getMessage());
-            responseModel.setResult(fail);
-            responseModel.setStatus(httpServletResponse.getStatus());
-        }
+    public ResponseModel searchUser(@RequestBody UserDto userDto, HttpServletResponse httpServletResponse) {
+        responseModel.clear();
+        List<UserResponseDto> users = userService.getUsersBySearch(userDto);
+        responseModel.setContents(users);
+        responseModel.setRecordCount((int) users.size());
+        responseModel.setStatus(httpServletResponse.getStatus());
         return responseModel;
     }
 
@@ -108,28 +76,13 @@ public class UserController {
         return responseModel;
     }
 
+    @PreAuthorize("hasAuthority('USER,DELETE')")
     @DeleteMapping("/delete/{id}")
-    public ResponseModel delete(@PathVariable("id") Long id, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
-        try {
-            log.info("delete user");
-            responseModel.clear();
-            userService.deleteUser(id);
-            responseModel.setStatus(httpServletResponse.getStatus());
-            responseModel.clear();
-            responseModel.setResult(success);
-        } catch (org.springframework.security.access.AccessDeniedException accessDeniedException) {
-            responseModel.setError(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
-            responseModel.setResult(fail);
-            responseModel.setSystemError(accessDeniedException.getMessage());
-            responseModel.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        } catch (Exception e) {
-            responseModel.setStatus(httpServletResponse.getStatus());
-            responseModel.setResult(fail);
-            responseModel.setError(e.getMessage());
-        } finally {
-            responseModel.setStatus(httpServletResponse.getStatus());
-            responseModel.setResult(fail);
-        }
+    public ResponseModel delete(@PathVariable("id") Long id, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
+        log.info("delete user");
+        responseModel.clear();
+        userService.deleteUser(id);
+        responseModel.setStatus(httpServletResponse.getStatus());
         return responseModel;
     }
 

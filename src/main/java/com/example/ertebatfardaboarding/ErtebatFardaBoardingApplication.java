@@ -13,9 +13,7 @@ import org.springframework.data.domain.Sort;
 
 import java.util.Locale;
 
-//@SpringBootApplication
 @SpringBootApplication(exclude = {RedisRepositoriesAutoConfiguration.class})
-//@SpringBootApplication(exclude = org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class)
 public class ErtebatFardaBoardingApplication {
 
     final static int PER_PAGE = 20;

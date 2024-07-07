@@ -1,7 +1,7 @@
 package com.example.ertebatfardaboarding.service;
 
-import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
+import com.example.ertebatfardaboarding.domain.responseDto.LoginResponseDto;
 import com.example.ertebatfardaboarding.domain.responseDto.UserResponseDto;
 import com.example.ertebatfardaboarding.exception.UserException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +18,7 @@ public interface UserService {
 
     List<UserResponseDto> getUsersBySearch(UserDto userDto);
 
-    UserResponseDto loginUser(UserDto userDto, HttpServletRequest httpServletRequest);
+    LoginResponseDto loginUser(UserDto userDto, HttpServletRequest httpServletRequest);
 
     void deleteUser(Long id) throws Exception;
 }

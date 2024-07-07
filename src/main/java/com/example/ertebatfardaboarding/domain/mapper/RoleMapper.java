@@ -4,6 +4,7 @@ import com.example.ertebatfardaboarding.domain.Role;
 import com.example.ertebatfardaboarding.domain.dto.RoleDto;
 import com.example.ertebatfardaboarding.domain.responseDto.RoleResponseDto;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 import java.util.List;
@@ -21,5 +22,7 @@ public interface RoleMapper {
     List<RoleResponseDto> roleListToRoleResponseDtoList(List<Role> roleList);
 
     List<RoleDto> roleListToRoleDtoList(List<Role> roleList);
+
+    void updateRoleFromDto(RoleDto roleDto, @MappingTarget Role role);
 
 }

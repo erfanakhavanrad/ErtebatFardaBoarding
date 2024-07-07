@@ -7,23 +7,24 @@ import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
 import com.example.ertebatfardaboarding.domain.mapper.RoleMapper;
 import com.example.ertebatfardaboarding.domain.mapper.UserMapper;
+import com.example.ertebatfardaboarding.domain.responseDto.LoginResponseDto;
 import com.example.ertebatfardaboarding.domain.responseDto.UserResponseDto;
 import com.example.ertebatfardaboarding.domain.specification.UserSpecification;
+import com.example.ertebatfardaboarding.exception.RoleException;
 import com.example.ertebatfardaboarding.exception.UserException;
 import com.example.ertebatfardaboarding.repo.RoleRepository;
 import com.example.ertebatfardaboarding.repo.UserRepository;
 import com.example.ertebatfardaboarding.security.SecurityService;
 import com.example.ertebatfardaboarding.service.UserService;
+import com.example.ertebatfardaboarding.utils.GlobalConstants;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.stereotype.Service;
 
 import java.security.MessageDigest;
@@ -55,15 +56,8 @@ public class UserServiceImpl implements UserService {
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
 
-    @Value("${SUCCESS_RESULT}")
-    int success;
-
-    @Value("${FAIL_RESULT}")
-    int fail;
     @Autowired
     private RoleRepository roleRepository;
-    @Autowired
-    private MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter;
 
     @Override
     public List<UserResponseDto> getUsersBySearch(UserDto userDto) {
@@ -106,7 +100,7 @@ public class UserServiceImpl implements UserService {
         UserDto thisUserDto = (UserDto) redisTemplate.opsForValue().get(userDto.getEmail());
         log.info("Verifying user with email: {} - Found: {}", userDto.getEmail(), thisUserDto != null);
         if (thisUserDto == null || !Objects.equals(thisUserDto.getActivationCode(), userDto.getActivationCode()) || thisUserDto.getIsActive())
-            throw new UserException(faMessageSource.getMessage("INVALID_OTP", null, Locale.ENGLISH));
+            throw new UserException(faMessageSource.getMessage("INVALID_OTP", null, Locale.ENGLISH) + faMessageSource.getMessage("INVALID_OTP", null, Locale.ENGLISH));
         else {
             thisUserDto.setIsActive(true);
             Role role = fillInRoleAndPrivileges(thisUserDto.getRoles().get(0).getId());
@@ -120,7 +114,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private Role fillInRoleAndPrivileges(Long id) throws Exception {
-        return roleRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
+        return roleRepository.findById(id).orElseThrow(() -> new RoleException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
 
     }
 
@@ -129,8 +123,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponseDto loginUser(UserDto userDto, HttpServletRequest httpServletRequest) {
+    public LoginResponseDto loginUser(UserDto userDto, HttpServletRequest httpServletRequest) {
         UserDto userDtoTemp = userDto;
+        LoginResponseDto loginResponseDto = new LoginResponseDto();
         userDtoTemp.setName(null);
         List<User> savedUser = getUsers(userDtoTemp);
         if (savedUser.isEmpty())
@@ -141,12 +136,10 @@ public class UserServiceImpl implements UserService {
         if (isPasswordValid(savedUser.get(0), userDto)) {
             List tokens = new ArrayList();
             tokens.add(securityService.createTokenByUserPasswordAuthentication(userDto.getEmail()));
-            responseModel.clear();
-            responseModel.setContents(tokens);
-            responseModel.setContent(savedUser);
-            responseModel.setResult(success);
+            loginResponseDto = userMapper.userToLoginResponseDto(savedUser.get(0));
+            loginResponseDto.setTokens(tokens);
         } else throw new UserException(faMessageSource.getMessage("INVALID_CREDENTIALS", null, Locale.ENGLISH));
-        return userMapper.userToUserResponseDto(savedUser.get(0));
+        return loginResponseDto;
     }
 
     @Override
@@ -160,7 +153,7 @@ public class UserServiceImpl implements UserService {
             String salt = userDto.getEmail().substring(2, 5);
             String readyPass = salt + userDto.getPassword();
             // Create MessageDigest instance for SHA-256
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            MessageDigest digest = MessageDigest.getInstance(GlobalConstants.ALGORITHM);
             // Apply the hash function to the input bytes
             byte[] hashBytes = digest.digest(readyPass.getBytes());
             // Convert the byte array into a hexadecimal string

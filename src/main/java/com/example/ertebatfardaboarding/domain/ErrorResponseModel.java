@@ -3,44 +3,36 @@ package com.example.ertebatfardaboarding.domain;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
-@Component
 @Data
-public class ResponseModel<T> {
-
+@Component
+public class ErrorResponseModel {
     private int status;
-    private int recordCount;
-    private T content;
-    private List<?> contents;
-    private final int result = 1;
+    private String error;
+    private final int result = 0;
+    private String timestamp;
 
     @Override
     public String toString() {
         return "ResponseModel{" +
                 "status=" + status +
-                ", recordCount=" + recordCount +
-                ", content=" + content +
-                ", contents=" + contents +
+                ", error='" + error + '\'' +
                 ", result='" + result + '\'' +
+                ", timestamp='" + timestamp + '\'' +
                 '}';
     }
 
     public String toStringJson() {
         return "{" +
                 "status=" + status +
-                ", recordCount=" + recordCount +
-                ", content=" + content +
-                ", contents=" + contents +
+                ", error='" + error + '\'' +
                 ", result='" + result + '\'' +
+                ", timestamp='" + timestamp + '\'' +
                 '}';
     }
 
     public void clear() {
-        setRecordCount(0);
+        setTimestamp(null);
+        setError(null);
         setStatus(0);
-        setContents(null);
-        setContent(null);
     }
-
 }

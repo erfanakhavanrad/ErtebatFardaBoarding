@@ -21,7 +21,4 @@ public class Attachment {
     private String username;
     @Column
     private String token;
-//    @OneToOne(mappedBy = "attachment")
-//    private Contact contact;
-
 }

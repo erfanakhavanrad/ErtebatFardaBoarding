@@ -1,6 +1,5 @@
 package com.example.ertebatfardaboarding.domain.responseDto;
 
-import com.example.ertebatfardaboarding.domain.Privilege;
 import lombok.Data;
 
 import java.util.List;

@@ -2,7 +2,6 @@ package com.example.ertebatfardaboarding.service.impl;
 
 import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
 import com.example.ertebatfardaboarding.domain.Contact;
-import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.ContactDetailDto;
 import com.example.ertebatfardaboarding.domain.dto.ContactDto;
@@ -27,7 +26,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -50,9 +48,6 @@ public class ContactServiceImpl implements ContactService {
 
     @Autowired
     ContactMapper contactMapper;
-
-    @Autowired
-    ResponseModel responseModel;
 
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
@@ -105,28 +100,10 @@ public class ContactServiceImpl implements ContactService {
         return matcher.matches();
     }
 
-//    @SneakyThrows
-//    @Override
-//    public ContactResponseDto updateContact(ContactDto contactDto, HttpServletRequest httpServletRequest) throws ContactException {
-//        Contact oldContact;
-//        if (!contactRepository.existsById(contactDto.getId())) {
-//            throw new ContactException(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
-//        }
-//        oldContact = getContactById(contactDto.getId());
-//        Contact newContact = ContactMapper.contactMapper.contactDtoToContact(contactDto);
-//        responseModel.clear();
-//        Contact updated = (Contact) responseModel.merge(oldContact, newContact);
-//        if (newContact.getContactDetailList() != null && !newContact.getContactDetailList().isEmpty()) {
-//            updated.setContactDetailList(newContact.getContactDetailList());
-//        }
-//        Contact save = contactRepository.save(updated);
-//    return contactMapper.contactToContactResponseDto(save);
-//    }
-
     @SneakyThrows
     @Transactional
     @Override
-    public ContactResponseDto updateContactMapStruct(ContactDto contactDto, HttpServletRequest httpServletRequest) throws ContactException {
+    public ContactResponseDto updateContactMapStruct(ContactDto contactDto, HttpServletRequest httpServletRequest) {
         Contact contact = contactRepository.findById(contactDto.getId())
                 .orElseThrow(() -> new UserException("User not found"));
         ContactMapper.contactMapper.updateContactDetailFromDto(contactDto, contact);
@@ -137,8 +114,7 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public Page<ContactResponseDto> getContacts(Integer pageNo, Integer perPage) throws Exception {
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(currentUsername);
+        User currentUser = exctractCurrentUser();
         Page<Contact> all;
         if (currentUser.getRoles().stream().anyMatch(role -> role.getName().equals(GlobalConstants.ADMIN_NAME))) {
             all = contactRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
@@ -149,9 +125,10 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
-    public List<ContactResponseDto> getContactsBySearch(ContactDto contactDto) {
+    public Page<ContactResponseDto> getContactsBySearch(ContactDto contactDto, Integer pageNo, Integer perPage) {
+        User currentUser = exctractCurrentUser();
         Specification<Contact> specification = Specification.where(null);
-
+        Page<Contact> all;
         if (contactDto.getName() != null) {
             specification = hasName(contactDto.getName());
         }
@@ -159,13 +136,19 @@ public class ContactServiceImpl implements ContactService {
         if (contactDto.getEmail() != null) {
             specification = hasEmail(contactDto.getEmail());
         }
-        List<Contact> all = contactRepository.findAll(specification);
-        return contactMapper.contactListToContactResponseDtoList(all);
+
+        if (currentUser.getRoles().stream().anyMatch(role -> role.getName().equals(GlobalConstants.ADMIN_NAME))) {
+            all = contactRepository.findAll(specification, ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+        } else {
+            all = contactRepository.findAllByCreatedBy(currentUser, specification, ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+        }
+
+        return all.map(contactMapper::contactToContactResponseDto);
     }
 
     @Override
     public ContactResponseDto getContactById(Long id) throws Exception {
-        Contact contact = contactRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
+        Contact contact = contactRepository.findById(id).orElseThrow(() -> new ContactException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
         return contactMapper.contactToContactResponseDto(contact);
     }
 
@@ -182,6 +165,11 @@ public class ContactServiceImpl implements ContactService {
     private static Specification<Contact> hasEmail(String email) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.like(criteriaBuilder.lower(root.get("email")),
                 "%" + email.toLowerCase() + "%");
+    }
+
+    private User exctractCurrentUser() {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(currentUsername);
     }
 
 }

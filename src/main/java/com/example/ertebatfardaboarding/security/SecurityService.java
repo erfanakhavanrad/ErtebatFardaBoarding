@@ -2,12 +2,8 @@ package com.example.ertebatfardaboarding.security;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.utils.GlobalConstants;
-import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.MessageSource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,22 +18,10 @@ import java.util.stream.Collectors;
 public class SecurityService {
 
     @Autowired
-    ResponseModel responseModel;
-
-    @Autowired
     UserDetailsService userDetailsService;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
-
-    @Value("${SUCCESS_RESULT}")
-    int success;
-
-    @Value("${FAIL_RESULT}")
-    int fail;
-
-    @Resource(name = "faMessageSource")
-    private MessageSource faMessageSource;
 
     public SecurityModel createTokenByUserPasswordAuthentication(String userName) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(userName);

@@ -61,12 +61,12 @@ public class FileStorageServiceImpl implements FileStorageService {
 
     @Override
     public AttachmentResponseDto getAttachmentById(Long id) throws Exception {
-        Attachment attachment = attachmentRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
+        Attachment attachment = attachmentRepository.findById(id).orElseThrow(() -> new AttachmentException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
         return attachmentMapper.attachmentToAttachmentResponseDto(attachment);
     }
 
     private Attachment getAttachmentByIdDto(Long id) throws Exception {
-        return attachmentRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
+        return attachmentRepository.findById(id).orElseThrow(() -> new AttachmentException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
     }
 
     public FileStorageServiceImpl(@Value("${file.upload-dir}") String uploadDir) {
@@ -106,7 +106,6 @@ public class FileStorageServiceImpl implements FileStorageService {
         AttachmentDto attachmentDto = AttachmentMapper.attachmentMapper.attachmentToAttachmentDto(savedAttachment);
         return attachmentMapper.attachmentDtoToAttachmentResponseDto(attachmentDto);
     }
-
 
     public Attachment getAttachmentByToken(String token) {
         return attachmentRepository.findByToken(token);

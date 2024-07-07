@@ -3,9 +3,10 @@ package com.example.ertebatfardaboarding.domain.responseDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 @Data
-public class UserResponseDto {
+public class LoginResponseDto {
     private Long id;
     private String name;
     private String email;
@@ -15,4 +16,5 @@ public class UserResponseDto {
     private Boolean isActive = false;
     private String activationCode;
     private List<RoleResponseDto> roles;
+    private List<ArrayList> tokens;
 }

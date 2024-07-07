@@ -2,11 +2,12 @@ package com.example.ertebatfardaboarding.service.impl;
 
 import com.example.ertebatfardaboarding.ErtebatFardaBoardingApplication;
 import com.example.ertebatfardaboarding.domain.Privilege;
-import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.domain.Role;
 import com.example.ertebatfardaboarding.domain.dto.RoleDto;
 import com.example.ertebatfardaboarding.domain.mapper.RoleMapper;
 import com.example.ertebatfardaboarding.domain.responseDto.RoleResponseDto;
+import com.example.ertebatfardaboarding.exception.PrivilegeException;
+import com.example.ertebatfardaboarding.exception.RoleException;
 import com.example.ertebatfardaboarding.repo.PrivilegeRepository;
 import com.example.ertebatfardaboarding.repo.RoleRepository;
 import com.example.ertebatfardaboarding.security.SecurityService;
@@ -26,6 +27,7 @@ import java.util.Locale;
 public class RoleServiceImpl implements RoleService {
     @Autowired
     RoleRepository roleRepository;
+
     @Autowired
     PrivilegeRepository privilegeRepository;
 
@@ -34,9 +36,6 @@ public class RoleServiceImpl implements RoleService {
 
     @Autowired
     RoleMapper roleMapper;
-
-    @Autowired
-    ResponseModel responseModel;
 
     @Autowired
     SecurityService securityService;
@@ -49,7 +48,7 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public RoleResponseDto getRoleById(Long id) throws Exception {
-        Role foundRole = roleRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("ROLE_NOT_FOUND", null, Locale.ENGLISH)));
+        Role foundRole = roleRepository.findById(id).orElseThrow(() -> new RoleException(faMessageSource.getMessage("ROLE_NOT_FOUND", null, Locale.ENGLISH)));
         return roleMapper.roleToRoleResponseDto(foundRole);
     }
 
@@ -71,18 +70,10 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public RoleResponseDto updateRole(RoleDto roleDto, HttpServletRequest httpServletRequest) throws Exception {
-
-        Role oldRole = getRoleByIdRoleResponseDto(roleDto.getId());
-        Role newRole = RoleMapper.roleMapper.roleDtoToRole(roleDto);
-
-        responseModel.clear();
-        Role updated = (Role) responseModel.merge(oldRole, newRole);
-
-        if (roleDto.getPrivileges() != null && !roleDto.getPrivileges().isEmpty()) {
-            updated.setPrivileges(newRole.getPrivileges());
-        }
-
-        Role saved = roleRepository.save(updated);
+        Role role = roleRepository.findById(roleDto.getId()).orElseThrow(
+                () -> new PrivilegeException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH)));
+        roleMapper.updateRoleFromDto(roleDto, role);
+        Role saved = roleRepository.save(role);
         return roleMapper.roleToRoleResponseDto(saved);
     }
 
@@ -109,7 +100,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     private Role getRoleByIdRoleResponseDto(Long id) throws Exception {
-        return roleRepository.findById(id).orElseThrow(() -> new Exception(faMessageSource.getMessage("ROLE_NOT_FOUND", null, Locale.ENGLISH)));
+        return roleRepository.findById(id).orElseThrow(() -> new RoleException(faMessageSource.getMessage("ROLE_NOT_FOUND", null, Locale.ENGLISH)));
     }
 
 }

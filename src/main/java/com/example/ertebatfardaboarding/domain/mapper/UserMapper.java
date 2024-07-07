@@ -2,6 +2,7 @@ package com.example.ertebatfardaboarding.domain.mapper;
 
 import com.example.ertebatfardaboarding.domain.User;
 import com.example.ertebatfardaboarding.domain.dto.UserDto;
+import com.example.ertebatfardaboarding.domain.responseDto.LoginResponseDto;
 import com.example.ertebatfardaboarding.domain.responseDto.UserResponseDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
@@ -13,6 +14,7 @@ public interface UserMapper {
     UserMapper userMapper = Mappers.getMapper(UserMapper.class);
 
     UserDto userToUserDto(User user);
+
     UserResponseDto userToUserResponseDto(User user);
 
     User userDtoToUser(UserDto userDto);
@@ -21,4 +23,5 @@ public interface UserMapper {
 
     List<UserResponseDto> userListToUserResponseDtoList(List<User> userList);
 
+    LoginResponseDto userToLoginResponseDto(User user);
 }

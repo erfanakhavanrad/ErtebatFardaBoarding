@@ -1,0 +1,36 @@
+#<?xml version="1.0" encoding="UTF-8"?>
+#<databaseChangeLog
+#xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+#xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+#xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+#http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+#
+#<changeSet id="1" author="YourName">
+#<createTable tableName="privilege">
+#<column name="id" type="NUMBER(10,0)">
+#<constraints primaryKey="true" nullable="false"/>
+#</column>
+#<column name="name" type="VARCHAR2(255)">
+#<constraints nullable="false"/>
+#</column>
+#<column name="domain" type="VARCHAR2(255)">
+#<constraints nullable="false"/>
+#</column>
+#<column name="access" type="VARCHAR2(255)">
+#<constraints nullable="false"/>
+#</column>
+#</createTable>
+#</changeSet>
+#
+#<changeSet id="2" author="YourName">
+#<insert tableName="privilege">
+#<column name="id" valueNumeric="250"/>
+#<column name="name" value="ATTACHMENT_MIGRATION"/>
+#<column name="domain" value="ATTACHMENT"/>
+#<column name="access" value="MIGRATION"/>
+#</insert>
+#</changeSet>
+#
+#<!-- Add more <changeSet> elements here to insert or update more records as needed -->
+#
+#</databaseChangeLog>

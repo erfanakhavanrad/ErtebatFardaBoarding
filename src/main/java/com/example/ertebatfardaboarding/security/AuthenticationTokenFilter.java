@@ -1,5 +1,6 @@
 package com.example.ertebatfardaboarding.security;
 
+import com.example.ertebatfardaboarding.domain.ErrorResponseModel;
 import com.example.ertebatfardaboarding.domain.ResponseModel;
 import com.example.ertebatfardaboarding.service.impl.UserDetailsServiceImpl;
 import com.example.ertebatfardaboarding.service.impl.UserServiceImpl;
@@ -16,13 +17,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 @Slf4j
 @Component
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
 
     public static String username;
+
     DDosControlService dDosControlService = new DDosControlService();
 
     @Autowired
@@ -32,7 +33,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
     UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    ResponseModel responseModel;
+    ErrorResponseModel responseModel;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -50,21 +51,13 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
                 username = dDosControlService.tokenVerification(request);
             }
         } catch (AuthorizationServiceException e) {
-            ResponseModel responseModel = new ResponseModel();
-            responseModel.setResult(-1);
-            responseModel.setSystemError(e.getMessage());
             responseModel.setError(e.getMessage());
             responseModel.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setStatus(HttpStatus.FORBIDDEN.value());
             Gson gson = new Gson();
             response.getWriter().write(gson.toJson(responseModel));
         } catch (Exception e) {
-            ResponseModel responseModel = new ResponseModel();
-            responseModel.setResult(-1);
-            responseModel.setSystemError(e.toString());
             responseModel.setError(e.getMessage());
-            responseModel.setContent(new Object());
-            responseModel.setContents(new ArrayList<>());
             responseModel.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             Gson gson = new Gson();

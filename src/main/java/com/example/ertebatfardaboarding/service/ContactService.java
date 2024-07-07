@@ -17,7 +17,7 @@ public interface ContactService {
 
     ContactResponseDto getContactById(Long id) throws Exception;
 
-    List<ContactResponseDto> getContactsBySearch(ContactDto contactDto);
+    Page<ContactResponseDto> getContactsBySearch(ContactDto contactDto, Integer pageNo, Integer perPage);
 
     void deleteContact(Long id);
 

@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-//@Lazy
 public class CustomPermissionEvaluator implements PermissionEvaluator {
     DataSource dataSource;
 
