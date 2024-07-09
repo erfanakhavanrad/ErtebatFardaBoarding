@@ -21,11 +21,14 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.Matcher;
@@ -126,7 +129,7 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public Page<ContactResponseDto> getContactsBySearch(ContactDto contactDto, Integer pageNo, Integer perPage) {
-        User currentUser = exctractCurrentUser();
+
         Specification<Contact> specification = Specification.where(null);
         Page<Contact> all;
         if (contactDto.getName() != null) {
@@ -137,12 +140,7 @@ public class ContactServiceImpl implements ContactService {
             specification = hasEmail(contactDto.getEmail());
         }
 
-        if (currentUser.getRoles().stream().anyMatch(role -> role.getName().equals(GlobalConstants.ADMIN_NAME))) {
-            all = contactRepository.findAll(specification, ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
-        } else {
-            all = contactRepository.findAllByCreatedBy(currentUser, specification, ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
-        }
-
+        all = contactRepository.findAll(specification, ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
         return all.map(contactMapper::contactToContactResponseDto);
     }
 

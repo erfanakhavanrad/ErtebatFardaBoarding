@@ -38,8 +38,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     UserRepository userRepository;
 
-    @Autowired
-    ResponseModel responseModel;
+    ResponseModel responseModel = new ResponseModel();
 
     @Autowired
     private SecurityService securityService;
@@ -125,7 +124,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public LoginResponseDto loginUser(UserDto userDto, HttpServletRequest httpServletRequest) {
         UserDto userDtoTemp = userDto;
-        LoginResponseDto loginResponseDto = new LoginResponseDto();
+        LoginResponseDto loginResponseDto;
         userDtoTemp.setName(null);
         List<User> savedUser = getUsers(userDtoTemp);
         if (savedUser.isEmpty())

@@ -18,8 +18,7 @@ import java.util.List;
 @Slf4j
 public class RoleController {
 
-    @Autowired
-    ResponseModel responseModel;
+    ResponseModel responseModel = new ResponseModel();
 
     @Autowired
     RoleService roleService;

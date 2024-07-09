@@ -23,8 +23,7 @@ public class UserController {
 
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
-    @Autowired
-    ResponseModel responseModel;
+    ResponseModel responseModel = new ResponseModel();
 
     @Autowired
     UserService userService;

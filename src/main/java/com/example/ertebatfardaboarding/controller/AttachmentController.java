@@ -23,8 +23,7 @@ import java.io.IOException;
 @Slf4j
 public class AttachmentController {
 
-    @Autowired
-    ResponseModel responseModel;
+    ResponseModel responseModel = new ResponseModel();
 
     @Autowired
     FileStorageService fileStorageService;

@@ -1,10 +1,7 @@
 package com.example.ertebatfardaboarding.controller;
 
 import com.example.ertebatfardaboarding.domain.ErrorResponseModel;
-import com.example.ertebatfardaboarding.exception.AttachmentException;
-import com.example.ertebatfardaboarding.exception.ContactException;
-import com.example.ertebatfardaboarding.exception.UserException;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.ertebatfardaboarding.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,8 +14,7 @@ import java.time.LocalDateTime;
 @ControllerAdvice
 public class ControllerAdvisory extends ResponseEntityExceptionHandler {
 
-    @Autowired
-    ErrorResponseModel responseModel;
+    ErrorResponseModel responseModel = new ErrorResponseModel();
 
     @ResponseBody
     @ExceptionHandler(ContactException.class)
@@ -42,6 +38,24 @@ public class ControllerAdvisory extends ResponseEntityExceptionHandler {
     @ExceptionHandler(AttachmentException.class)
     public ErrorResponseModel handleAttachmentException(AttachmentException attachmentException, WebRequest webRequest) {
         responseModel.setError("attachmentException with message: " + attachmentException.getMessage());
+        responseModel.setStatus(HttpStatus.BAD_REQUEST.value());
+        responseModel.setTimestamp(String.valueOf(LocalDateTime.now()));
+        return responseModel;
+    }
+
+    @ResponseBody
+    @ExceptionHandler(RoleException.class)
+    public ErrorResponseModel handleRoleException(RoleException roleException, WebRequest webRequest) {
+        responseModel.setError("RoleException with message: " + roleException.getMessage());
+        responseModel.setStatus(HttpStatus.BAD_REQUEST.value());
+        responseModel.setTimestamp(String.valueOf(LocalDateTime.now()));
+        return responseModel;
+    }
+
+    @ResponseBody
+    @ExceptionHandler(PrivilegeException.class)
+    public ErrorResponseModel handlePrivilegeException(PrivilegeException privilegeException, WebRequest webRequest) {
+        responseModel.setError("PrivilegeException with message: " + privilegeException.getMessage());
         responseModel.setStatus(HttpStatus.BAD_REQUEST.value());
         responseModel.setTimestamp(String.valueOf(LocalDateTime.now()));
         return responseModel;

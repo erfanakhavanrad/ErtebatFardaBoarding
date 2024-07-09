@@ -32,8 +32,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
     @Autowired
     UserDetailsServiceImpl userDetailsService;
 
-    @Autowired
-    ErrorResponseModel responseModel;
+    ErrorResponseModel responseModel = new ErrorResponseModel();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)

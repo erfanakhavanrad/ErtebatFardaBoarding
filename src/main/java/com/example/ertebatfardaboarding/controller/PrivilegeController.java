@@ -16,8 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class PrivilegeController {
 
-    @Autowired
-    ResponseModel responseModel;
+    ResponseModel responseModel = new ResponseModel();
 
     @Autowired
     PrivilegeService privilegeService;
