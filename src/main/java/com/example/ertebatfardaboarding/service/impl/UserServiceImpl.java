@@ -10,8 +10,7 @@ import com.example.ertebatfardaboarding.domain.mapper.UserMapper;
 import com.example.ertebatfardaboarding.domain.responseDto.LoginResponseDto;
 import com.example.ertebatfardaboarding.domain.responseDto.UserResponseDto;
 import com.example.ertebatfardaboarding.domain.specification.UserSpecification;
-import com.example.ertebatfardaboarding.exception.RoleException;
-import com.example.ertebatfardaboarding.exception.UserException;
+import com.example.ertebatfardaboarding.exception.*;
 import com.example.ertebatfardaboarding.repo.RoleRepository;
 import com.example.ertebatfardaboarding.repo.UserRepository;
 import com.example.ertebatfardaboarding.security.SecurityService;
@@ -86,7 +85,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponseDto registerUser(UserDto userDto, HttpServletRequest httpServletRequest) throws UserException {
         if (!getUsers(userDto).isEmpty())
-            throw new UserException(faMessageSource.getMessage("ALREADY_EXISTS", null, Locale.ENGLISH));
+            throw new ConflictException(faMessageSource.getMessage("ALREADY_EXISTS", null, Locale.ENGLISH));
         userDto.setPassword(passwordGenerator(userDto));
         userDto.setActivationCode(passwordGenerator());
         redisTemplate.opsForValue().set(userDto.getEmail(), userDto, 500, TimeUnit.SECONDS);
@@ -99,7 +98,7 @@ public class UserServiceImpl implements UserService {
         UserDto thisUserDto = (UserDto) redisTemplate.opsForValue().get(userDto.getEmail());
         log.info("Verifying user with email: {} - Found: {}", userDto.getEmail(), thisUserDto != null);
         if (thisUserDto == null || !Objects.equals(thisUserDto.getActivationCode(), userDto.getActivationCode()) || thisUserDto.getIsActive())
-            throw new UserException(faMessageSource.getMessage("INVALID_OTP", null, Locale.ENGLISH) + faMessageSource.getMessage("INVALID_OTP", null, Locale.ENGLISH));
+            throw new BadRequestException(faMessageSource.getMessage("INVALID_OTP", null, Locale.ENGLISH) + faMessageSource.getMessage("INVALID_OTP", null, Locale.ENGLISH));
         else {
             thisUserDto.setIsActive(true);
             Role role = fillInRoleAndPrivileges(thisUserDto.getRoles().get(0).getId());
@@ -128,16 +127,16 @@ public class UserServiceImpl implements UserService {
         userDtoTemp.setName(null);
         List<User> savedUser = getUsers(userDtoTemp);
         if (savedUser.isEmpty())
-            throw new UserException(faMessageSource.getMessage("INVALID_CREDENTIALS", null, Locale.ENGLISH));
+            throw new UnAuthorizedException(faMessageSource.getMessage("INVALID_CREDENTIALS", null, Locale.ENGLISH));
         if (!savedUser.get(0).getIsActive()) {
-            throw new UserException(faMessageSource.getMessage("NOT_ACTIVE", null, Locale.ENGLISH));
+            throw new UnAuthorizedException(faMessageSource.getMessage("NOT_ACTIVE", null, Locale.ENGLISH));
         }
         if (isPasswordValid(savedUser.get(0), userDto)) {
             List tokens = new ArrayList();
             tokens.add(securityService.createTokenByUserPasswordAuthentication(userDto.getEmail()));
             loginResponseDto = userMapper.userToLoginResponseDto(savedUser.get(0));
             loginResponseDto.setTokens(tokens);
-        } else throw new UserException(faMessageSource.getMessage("INVALID_CREDENTIALS", null, Locale.ENGLISH));
+        } else throw new UnAuthorizedException(faMessageSource.getMessage("INVALID_CREDENTIALS", null, Locale.ENGLISH));
         return loginResponseDto;
     }
 

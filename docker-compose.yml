@@ -30,61 +30,79 @@ services:
     networks:
       - my_network
 
-#  elasticsearch:
-#    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1
-#    container_name: elasticsearch
-#    environment:
-#      - discovery.type=single-node
-#    ports:
-#      - "9200:9200"
-#    volumes:
-#      - esdata:/usr/share/elasticsearch/data
-#    networks:
-#      - my_network
-#
-#  logstash:
-#    image: docker.elastic.co/logstash/logstash:7.7.1
-#    container_name: logstash
-#    volumes:
-#      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
-#    ports:
-#      - "5000:5000"
-#    depends_on:
-#      - elasticsearch
-#    networks:
-#      - my_network
-#
-#  kibana:
-#    image: docker.elastic.co/kibana/kibana:7.7.1
-#    container_name: kibana
-#    ports:
-#      - "5601:5601"
-#    depends_on:
-#      - elasticsearch
-#    networks:
-#      - my_network
-
-  spring-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: spring-app
-    ports:
-      - "8888:8888"
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.3.3
+    container_name: elasticsearch_springboot
     environment:
-      SPRING_PROFILES_ACTIVE: prod
-      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle-db:1521:xe
-      SPRING_DATASOURCE_USERNAME: C##test_user
-      SPRING_DATASOURCE_PASSWORD: Secure@Pwa9
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
-    depends_on:
-      oracle-db:
-        condition: service_healthy
-      redis:
-        condition: service_started
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "discovery.type=single-node"
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
     networks:
       - my_network
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.3.3
+    container_name: kibana_springboot
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+    depends_on:
+      - elasticsearch
+    networks:
+      - my_network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.3.3
+    container_name: logstash_springboot
+    volumes:
+      - ./elk/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./elk/logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "5044:5044"
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    networks:
+      - my_network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+#  spring-app:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: spring-app
+#    ports:
+#      - "8888:8888"
+#    environment:
+#      SPRING_PROFILES_ACTIVE: prod
+#      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle-db:1521:xe
+#      SPRING_DATASOURCE_USERNAME: C##test_user
+#      SPRING_DATASOURCE_PASSWORD: Secure@Pwa9
+#      SPRING_REDIS_HOST: redis
+#      SPRING_REDIS_PORT: 6379
+#    depends_on:
+#      oracle-db:
+#        condition: service_healthy
+#      redis:
+#        condition: service_started
+#    networks:
+#      - my_network
 
 networks:
   my_network:
@@ -92,5 +110,7 @@ networks:
 volumes:
   oracle-data:
   redis-data:
+  elasticsearch_data:
+    driver: local
 #  esdata:
 #    driver: local

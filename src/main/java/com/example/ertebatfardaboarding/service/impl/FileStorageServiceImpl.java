@@ -6,10 +6,13 @@ import com.example.ertebatfardaboarding.domain.dto.AttachmentDto;
 import com.example.ertebatfardaboarding.domain.mapper.AttachmentMapper;
 import com.example.ertebatfardaboarding.domain.responseDto.AttachmentResponseDto;
 import com.example.ertebatfardaboarding.exception.AttachmentException;
+import com.example.ertebatfardaboarding.exception.ForbiddenException;
 import com.example.ertebatfardaboarding.repo.AttachmentRepository;
 import com.example.ertebatfardaboarding.service.FileStorageService;
 import jakarta.annotation.Resource;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -20,7 +23,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
+import org.webjars.NotFoundException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -85,10 +91,10 @@ public class FileStorageServiceImpl implements FileStorageService {
 
         String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         if (fileName.contains("..")) {
-            throw new AttachmentException(faMessageSource.getMessage("INVALID_PATH", null, Locale.ENGLISH) + fileName);
+            throw new BadRequestException(faMessageSource.getMessage("INVALID_PATH", null, Locale.ENGLISH) + fileName);
         }
         if (file.getSize() >= 5000000) {
-            throw new AttachmentException(faMessageSource.getMessage("FILE_SIZE", null, Locale.ENGLISH));
+            throw new MaxUploadSizeExceededException(5000000);
         }
 
         Path targetLocation = this.fileStorageLocation.resolve(fileName);
@@ -129,9 +135,9 @@ public class FileStorageServiceImpl implements FileStorageService {
         UserDetails userDetails = (UserDetails) redisTemplate.opsForValue().get(fileToken);
         Attachment attachmentById = getAttachmentByIdDto(photoId);
         if (userDetails == null)
-            throw new AttachmentException(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
+            throw new ForbiddenException(faMessageSource.getMessage("ACCESS_DENIED", null, Locale.ENGLISH));
         if (attachmentById == null)
-            throw new AttachmentException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
+            throw new EntityNotFoundException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
         Path targetLocation = this.fileStorageLocation.resolve(attachmentById.getFileName());
         attachmentById.setAccessUrl(targetLocation.toString());
         return attachmentMapper.attachmentToAttachmentResponseDto(attachmentById);
@@ -142,7 +148,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         UserDetails userDetails = (UserDetails) redisTemplate.opsForValue().get(fileToken);
         Attachment attachmentById = getAttachmentByIdDto(photoId);
         if (userDetails == null || attachmentById == null)
-            throw new AttachmentException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
+            throw new EntityNotFoundException(faMessageSource.getMessage("NOT_FOUND", null, Locale.ENGLISH));
         String accessUrl = attachmentById.getAccessUrl().replaceAll("(?<!http:)//", "/");
         AttachmentDto attachmentDto = AttachmentMapper.attachmentMapper.attachmentToAttachmentDto(attachmentById);
         attachmentDto.setFileData(readImageAsByteArray(accessUrl));

@@ -18,6 +18,7 @@ import com.example.ertebatfardaboarding.utils.Utils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
@@ -80,7 +81,7 @@ public class ContactServiceImpl implements ContactService {
             ContactDetailDto details = contactDto.getContactDetailList().get(i);
             if (Objects.equals(details.getNumberName(), "mobile")) {
                 if (!isNumberValid(details.getNumber())) {
-                    throw new ContactException(faMessageSource.getMessage("PHONE_NOT_VALID", null, Locale.getDefault()));
+                    throw new BadRequestException(faMessageSource.getMessage("PHONE_NOT_VALID", null, Locale.getDefault()));
                 }
 
             }
