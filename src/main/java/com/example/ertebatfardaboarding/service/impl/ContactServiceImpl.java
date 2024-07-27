@@ -8,11 +8,13 @@ import com.example.ertebatfardaboarding.domain.dto.ContactDto;
 import com.example.ertebatfardaboarding.domain.mapper.ContactMapper;
 import com.example.ertebatfardaboarding.domain.responseDto.ContactResponseDto;
 import com.example.ertebatfardaboarding.exception.ContactException;
+import com.example.ertebatfardaboarding.exception.ForbiddenException;
 import com.example.ertebatfardaboarding.exception.UserException;
 import com.example.ertebatfardaboarding.repo.ContactRepository;
 import com.example.ertebatfardaboarding.repo.UserRepository;
 import com.example.ertebatfardaboarding.service.ContactService;
 import com.example.ertebatfardaboarding.service.FileStorageService;
+import com.example.ertebatfardaboarding.service.rateLimit.RateLimitingService;
 import com.example.ertebatfardaboarding.utils.GlobalConstants;
 import com.example.ertebatfardaboarding.utils.Utils;
 import jakarta.annotation.Resource;
@@ -55,6 +57,9 @@ public class ContactServiceImpl implements ContactService {
 
     @Resource(name = "faMessageSource")
     private MessageSource faMessageSource;
+
+    @Autowired
+    private RateLimitingService rateLimitingService;
 
     @Override
     public ContactResponseDto createContact(ContactDto contactDto, HttpServletRequest httpServletRequest) throws Exception {
@@ -118,14 +123,18 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public Page<ContactResponseDto> getContacts(Integer pageNo, Integer perPage) throws Exception {
-        User currentUser = exctractCurrentUser();
-        Page<Contact> all;
-        if (currentUser.getRoles().stream().anyMatch(role -> role.getName().equals(GlobalConstants.ADMIN_NAME))) {
-            all = contactRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+        if (rateLimitingService.tryConsume(SecurityContextHolder.getContext().getAuthentication().getName())) {
+            User currentUser = exctractCurrentUser();
+            Page<Contact> all;
+            if (currentUser.getRoles().stream().anyMatch(role -> role.getName().equals(GlobalConstants.ADMIN_NAME))) {
+                all = contactRepository.findAll(ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+            } else {
+                all = contactRepository.findAllByCreatedBy(currentUser, ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+            }
+            return all.map(contactMapper::contactToContactResponseDto);
         } else {
-            all = contactRepository.findAllByCreatedBy(currentUser, ErtebatFardaBoardingApplication.createPagination(pageNo, perPage));
+            throw new ForbiddenException("Limit reached. Try later");
         }
-        return all.map(contactMapper::contactToContactResponseDto);
     }
 
     @Override
