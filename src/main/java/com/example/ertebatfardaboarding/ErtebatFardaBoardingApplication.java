@@ -10,6 +10,7 @@ import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Locale;
 
@@ -47,6 +48,11 @@ public class ErtebatFardaBoardingApplication {
             return request.getRemoteAddr();
         }
         return xfHeader.split(",")[0];
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 
 }
